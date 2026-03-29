@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #0f0f11;
+  --surface:      #17171a;
+  --surface-2:    #1f1f24;
+  --surface-3:    #28282f;
+  --border:       rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.14);
+  --text:         #e8e6e1;
+  --text-muted:   #6b6a72;
+  --text-dim:     #45444c;
+  --accent:       #c8a97e;
+  --accent-hover: #d9bc97;
+  --accent-dim:   rgba(200,169,126,0.12);
+  --danger:       #c26b6b;
+  --success:      #6bbf8e;
+
+  --font-prose: 'Lora', Georgia, serif;
+  --font-ui:    'DM Sans', sans-serif;
+  --font-mono:  'DM Mono', monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms; --dur-base: 220ms; --dur-slow: 360ms;
+  --sidebar-w: 268px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 14px; -webkit-font-smoothing: antialiased; }
+#app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+  transition: width var(--dur-slow) var(--ease-out), min-width var(--dur-slow) var(--ease-out);
+}
+#sidebar.collapsed { width: 0; min-width: 0; }
+#sidebar-header { padding: 18px 14px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#doc-title-input {
+  width: 100%; background: transparent; border: none; color: var(--text);
+  font-family: var(--font-prose); font-size: 14px; font-weight: 500; outline: none;
+  padding: 3px 0; border-bottom: 1px solid transparent; transition: border-color var(--dur-base);
+}
+#doc-title-input:focus { border-bottom-color: var(--accent); }
+#doc-title-input::placeholder { color: var(--text-dim); }
+.sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-top: 12px; }
+
+/* ── TABS ── */
+#sidebar-tabs {
+  display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.sidebar-tab {
+  flex: 1; padding: 8px 4px; background: none; border: none; cursor: pointer;
+  font-family: var(--font-ui); font-size: 11px; font-weight: 500;
+  color: var(--text-dim); letter-spacing: 0.05em; text-transform: uppercase;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.sidebar-tab:hover { color: var(--text-muted); }
+.sidebar-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── OUTLINE PANEL ── */
+#panel-outline { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 0 8px; display: flex; flex-direction: column; }
+#panel-outline::-webkit-scrollbar { width: 3px; }
+#panel-outline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── ORGANIZE PANEL ── */
+#panel-organize { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 0; display: none; flex-direction: column; }
+#panel-organize::-webkit-scrollbar { width: 3px; }
+#panel-organize::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.org-chapter-block { margin-bottom: 4px; }
+.org-chapter-label {
+  padding: 6px 14px; font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.org-section-row {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px 4px 14px; margin: 1px 6px; border-radius: 5px;
+  font-size: 12.5px; color: var(--text-muted);
+  transition: background var(--dur-fast);
+}
+.org-section-row:hover { background: var(--surface-2); }
+.org-sec-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+
+.org-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  cursor: pointer; border-radius: 3px; font-size: 11px; line-height: 1;
+  padding: 2px 5px; transition: all var(--dur-fast); flex-shrink: 0;
+}
+.org-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
+.org-btn:disabled { opacity: 0.2; cursor: default; }
+.org-btn:disabled:hover { background: none; color: var(--text-dim); border-color: var(--border); }
+
+.org-reassign {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
+  border-radius: 3px; font-size: 11px; font-family: var(--font-ui); padding: 2px 4px;
+  cursor: pointer; outline: none; max-width: 80px;
+  transition: border-color var(--dur-fast);
+}
+.org-reassign:focus { border-color: var(--accent); }
+.org-reassign option { background: var(--surface-2); color: var(--text); }
+
+/* ── OUTLINE ROWS ── */
+#outline-tree { flex: 1; }
+.outline-item { position: relative; }
+.outline-row {
+  position: relative; display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px 5px 12px; border-radius: 5px; margin: 1px 6px;
+  cursor: pointer; user-select: none;
+  transition: background var(--dur-fast), color var(--dur-fast);
+  color: var(--text-muted); font-size: 13px;
+}
+.outline-row:hover { background: var(--surface-2); color: var(--text); }
+.outline-row.active { background: var(--accent-dim); color: var(--accent); }
+.outline-item.level-1 > .outline-row { font-weight: 500; }
+.outline-item.level-2 > .outline-row { padding-left: 24px; font-size: 12.5px; }
+.expand-btn { font-size: 9px; color: var(--text-dim); flex-shrink: 0; transition: transform var(--dur-fast); line-height: 1; }
+.outline-item.level-1.node-collapsed > .outline-row .expand-btn { transform: rotate(-90deg); }
+.node-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wc-badge { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+.vis-btn {
+  background: none; border: none; cursor: pointer; padding: 1px 3px;
+  font-size: 11px; flex-shrink: 0; opacity: 0; line-height: 1;
+  transition: opacity var(--dur-fast), color var(--dur-fast); color: var(--text-dim);
+}
+.outline-row:hover .vis-btn { opacity: 1; }
+.vis-btn.title-off { opacity: 1 !important; color: var(--danger); }
+.node-actions { display: flex; gap: 1px; opacity: 0; transition: opacity var(--dur-fast); flex-shrink: 0; }
+.outline-row:hover .node-actions { opacity: 1; }
+.node-btn {
+  background: none; border: none; color: var(--text-dim); cursor: pointer;
+  padding: 2px 4px; border-radius: 3px; font-size: 12px; line-height: 1;
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+.node-btn:hover { color: var(--text); background: var(--surface-3); }
+.node-btn.danger:hover { color: var(--danger); }
+.children-list.hidden { display: none; }
+.node-title-input {
+  background: var(--surface-2); border: 1px solid var(--accent); border-radius: 3px;
+  color: var(--text); font-family: var(--font-ui); font-size: 13px;
+  padding: 1px 5px; outline: none; width: 100%;
+}
+.add-sec-row {
+  display: flex; align-items: center; padding: 3px 10px 3px 26px; margin: 2px 6px 4px;
+  border-radius: 4px; border: 1px dashed var(--border); color: var(--text-dim);
+  cursor: pointer; font-size: 11px; gap: 4px;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+.add-sec-row:hover { background: var(--surface-2); color: var(--text-muted); border-color: var(--border-hover); }
+
+/* ── SIDEBAR FOOTER ── */
+#sidebar-footer { padding: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+.sidebar-btn {
+  display: flex; align-items: center; gap: 7px; padding: 7px 9px;
+  background: none; border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text-muted); cursor: pointer; font-family: var(--font-ui); font-size: 12px;
+  transition: all var(--dur-fast); width: 100%; text-align: left;
+}
+.sidebar-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
+
+/* ── MAIN ── */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#topbar {
+  display: flex; align-items: center; gap: 8px; padding: 9px 18px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
+}
+#toggle-sidebar {
+  background: none; border: none; color: var(--text-dim); cursor: pointer;
+  padding: 4px 6px; border-radius: 4px; font-size: 16px; line-height: 1;
+  transition: color var(--dur-fast), background var(--dur-fast); flex-shrink: 0;
+}
+#toggle-sidebar:hover { color: var(--text); background: var(--surface-2); }
+#breadcrumb { flex: 1; font-size: 13px; color: var(--text-muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#breadcrumb .bc-sep { color: var(--text-dim); margin: 0 4px; }
+#breadcrumb .bc-cur { color: var(--text); }
+#topbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.top-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer;
+  padding: 5px 10px; border-radius: 5px; font-family: var(--font-ui); font-size: 12px;
+  transition: all var(--dur-fast); white-space: nowrap;
+}
+.top-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
+.top-btn.accent { background: var(--accent-dim); border-color: rgba(200,169,126,0.25); color: var(--accent); }
+.top-btn.accent:hover { background: rgba(200,169,126,0.2); color: var(--accent-hover); }
+
+#format-bar {
+  display: flex; align-items: center; gap: 2px; padding: 5px 18px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface);
+}
+.fmt-btn {
+  background: none; border: none; color: var(--text-dim); cursor: pointer;
+  padding: 4px 7px; border-radius: 4px; font-size: 13px; font-family: var(--font-ui);
+  transition: all var(--dur-fast); line-height: 1.2;
+}
+.fmt-btn:hover { background: var(--surface-2); color: var(--text); }
+.fmt-btn.active { background: var(--accent-dim); color: var(--accent); }
+.fmt-sep { width: 1px; height: 14px; background: var(--border); margin: 0 3px; }
+#save-indicator { margin-left: auto; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+#save-indicator.saving { color: var(--accent); }
+#save-indicator.saved  { color: var(--success); }
+
+/* ── CANVAS ── */
+#canvas-wrap {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center;
+  padding: 48px 24px 100px;
+}
+#canvas-wrap::-webkit-scrollbar { width: 5px; }
+#canvas-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+#section-view { width: 100%; max-width: 680px; display: none; flex-direction: column; }
+#sv-title-input {
+  width: 100%; background: transparent; border: none; outline: none; color: var(--text);
+  font-family: var(--font-prose); font-size: 26px; font-weight: 400; letter-spacing: -0.01em;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  transition: border-color var(--dur-base); margin-bottom: 8px;
+}
+#sv-title-input:focus { border-bottom-color: var(--accent); }
+#sv-title-input::placeholder { color: var(--text-dim); }
+#sv-meta { display: flex; gap: 14px; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); margin-bottom: 30px; }
+#sv-editor {
+  width: 100%; min-height: 380px; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--font-prose); font-size: 17px; line-height: 1.78;
+  caret-color: var(--accent);
+}
+#sv-editor:empty::before { content: attr(data-placeholder); color: var(--text-dim); pointer-events: none; }
+
+#chapter-view { width: 100%; max-width: 680px; display: none; flex-direction: column; }
+#cv-title-input {
+  width: 100%; background: transparent; border: none; outline: none; color: var(--text);
+  font-family: var(--font-prose); font-size: 30px; font-weight: 400; letter-spacing: -0.02em;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  transition: border-color var(--dur-base); margin-bottom: 30px;
+}
+#cv-title-input:focus { border-bottom-color: var(--accent); }
+#cv-title-input::placeholder { color: var(--text-dim); }
+#cv-prose {
+  width: 100%; min-height: 60px; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--font-prose); font-size: 17px; line-height: 1.78;
+  caret-color: var(--accent); margin-bottom: 36px;
+}
+#cv-prose:empty::before { content: 'Opening notes or prose…'; color: var(--text-dim); pointer-events: none; }
+.cv-sec-block { border-top: 1px solid var(--border); padding-top: 32px; margin-bottom: 36px; }
+.cv-sec-block.cv-focused { background: rgba(255,255,255,0.012); border-radius: 4px; padding: 28px 12px 4px; margin: 0 -12px 36px; }
+.cv-sec-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+.cv-sec-title-inp {
+  font-family: var(--font-prose); font-size: 20px; font-weight: 400; color: var(--text);
+  background: transparent; border: none; outline: none; flex: 1;
+  padding-bottom: 2px; border-bottom: 1px solid transparent; caret-color: var(--accent);
+  transition: border-color var(--dur-base);
+}
+.cv-sec-title-inp:focus { border-bottom-color: rgba(200,169,126,0.35); }
+.cv-sec-title-inp.title-hidden { display: none; }
+.cv-focus-link {
+  font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);
+  cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: color var(--dur-fast);
+}
+.cv-focus-link:hover { color: var(--accent); }
+.cv-sec-body {
+  width: 100%; min-height: 50px; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--font-prose); font-size: 17px; line-height: 1.78;
+  caret-color: var(--accent);
+}
+.cv-sec-body:empty::before { content: 'Begin writing…'; color: var(--text-dim); pointer-events: none; }
+.cv-add-btn {
+  display: flex; align-items: center; gap: 8px; padding: 10px 0; margin-top: 4px;
+  color: var(--text-dim); cursor: pointer; font-size: 13px;
+  border-top: 1px dashed var(--border); transition: color var(--dur-fast);
+}
+.cv-add-btn:hover { color: var(--accent); }
+
+#empty-state {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px; padding: 40px; text-align: center;
+}
+.empty-icon { font-size: 36px; opacity: 0.15; margin-bottom: 6px; }
+#empty-state h2 { font-family: var(--font-prose); font-size: 20px; font-weight: 400; color: var(--text-muted); }
+#empty-state p { font-size: 13px; color: var(--text-dim); max-width: 280px; line-height: 1.6; }
+.empty-action {
+  margin-top: 6px; padding: 8px 20px; background: var(--accent-dim);
+  border: 1px solid rgba(200,169,126,0.25); border-radius: 6px;
+  color: var(--accent); cursor: pointer; font-family: var(--font-ui); font-size: 13px;
+  transition: all var(--dur-fast);
+}
+.empty-action:hover { background: rgba(200,169,126,0.2); }
+
+#statusbar {
+  display: flex; align-items: center; gap: 14px; padding: 5px 18px;
+  border-top: 1px solid var(--border); background: var(--surface);
+  flex-shrink: 0; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
+}
+#statusbar b { color: var(--text-muted); font-weight: 500; }
+
+/* ── MODALS ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;
+  z-index: 100; opacity: 0; pointer-events: none; transition: opacity var(--dur-base);
+}
+.modal-overlay.visible { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border-hover); border-radius: 10px;
+  padding: 24px; width: 360px; max-width: 90vw;
+  transform: translateY(8px); transition: transform var(--dur-base) var(--ease-out);
+}
+.modal-overlay.visible .modal { transform: translateY(0); }
+.modal h3 { font-family: var(--font-prose); font-size: 17px; font-weight: 500; margin-bottom: 16px; color: var(--text); }
+.modal label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+.modal input[type="text"] {
+  width: 100%; background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-family: var(--font-ui); font-size: 14px;
+  padding: 8px 11px; outline: none; transition: border-color var(--dur-fast);
+}
+.modal input[type="text"]:focus { border-color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.btn-primary {
+  padding: 7px 16px; background: var(--accent-dim); border: 1px solid rgba(200,169,126,0.3);
+  border-radius: 6px; color: var(--accent); cursor: pointer; font-family: var(--font-ui); font-size: 13px; transition: all var(--dur-fast);
+}
+.btn-primary:hover { background: rgba(200,169,126,0.2); }
+.btn-ghost {
+  padding: 7px 16px; background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-muted); cursor: pointer; font-family: var(--font-ui); font-size: 13px; transition: all var(--dur-fast);
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+
+#toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: var(--surface-2); border: 1px solid var(--border-hover);
+  border-radius: 6px; padding: 7px 14px; font-size: 12px; color: var(--text-muted);
+  opacity: 0; transition: all var(--dur-base) var(--ease-out); pointer-events: none; z-index: 200;
+}
+#toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media print {
+  #sidebar, #topbar, #format-bar, #statusbar { display: none !important; }
+  #app { display: block; }
+  #main, #canvas-wrap { overflow: visible; }
+  #canvas-wrap { padding: 0; }
+  #section-view, #chapter-view { display: block !important; max-width: none; }
+  * { color: #111 !important; background: transparent !important; }
+  #sv-title-input, #cv-title-input { font-size: 20pt; }
+  .cv-sec-title-inp { font-size: 14pt; }
+  #sv-editor, #cv-prose, .cv-sec-body { font-size: 12pt; line-height: 1.8; }
+  .cv-focus-link, .cv-add-btn { display: none; }
+  .cv-sec-title-inp.title-hidden { display: none !important; }
+  .cv-sec-block { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <input id="doc-title-input" type="text" placeholder="Untitled Document" spellcheck="false">
+      <div class="sidebar-label">Outline</div>
+    </div>
+
+    <div id="sidebar-tabs">
+      <button class="sidebar-tab active" id="tab-outline">Navigate</button>
+      <button class="sidebar-tab" id="tab-organize">Organize</button>
+    </div>
+
+    <div id="panel-outline">
+      <div id="outline-tree"></div>
+    </div>
+
+    <div id="panel-organize">
+      <div id="organize-tree"></div>
+    </div>
+
+    <div id="sidebar-footer">
+      <button class="sidebar-btn" id="add-chapter-btn">＋ &nbsp;Add Chapter</button>
+      <button class="sidebar-btn" id="export-json-btn">↓ &nbsp;Export JSON</button>
+      <button class="sidebar-btn" id="import-json-btn">↑ &nbsp;Import JSON</button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none">
+    </div>
+  </aside>
+
+  <div id="main">
+    <div id="topbar">
+      <button id="toggle-sidebar">☰</button>
+      <div id="breadcrumb"><span id="bc-inner">—</span></div>
+      <div id="topbar-actions">
+        <button class="top-btn accent" id="export-pdf-btn">Export PDF</button>
+      </div>
+    </div>
+    <div id="format-bar">
+      <button class="fmt-btn" id="fmt-bold"><b>B</b></button>
+      <button class="fmt-btn" id="fmt-italic"><i>I</i></button>
+      <button class="fmt-btn" id="fmt-underline"><u>U</u></button>
+      <div class="fmt-sep"></div>
+      <button class="fmt-btn" id="fmt-h2">H2</button>
+      <button class="fmt-btn" id="fmt-h3">H3</button>
+      <button class="fmt-btn" id="fmt-p">¶</button>
+      <button class="fmt-btn" id="fmt-quote">"</button>
+      <div id="save-indicator">—</div>
+    </div>
+    <div id="canvas-wrap">
+      <div id="section-view">
+        <input id="sv-title-input" type="text" placeholder="Section title…" spellcheck="false">
+        <div id="sv-meta"><span id="sv-path">—</span><span id="sv-wc">0 words</span></div>
+        <div id="sv-editor" contenteditable="true" spellcheck="true" data-placeholder="Begin writing…"></div>
+      </div>
+      <div id="chapter-view">
+        <input id="cv-title-input" type="text" placeholder="Chapter title…" spellcheck="false">
+        <div id="cv-prose" contenteditable="true" spellcheck="true"></div>
+        <div id="cv-sections"></div>
+        <div class="cv-add-btn" id="cv-add-sec-btn">＋ &nbsp;Add section to this chapter</div>
+      </div>
+      <div id="empty-state">
+        <div class="empty-icon">✦</div>
+        <h2>Nothing selected</h2>
+        <p>Add a chapter to get started, then select any item to write.</p>
+        <button class="empty-action" id="empty-add-ch">Add First Chapter</button>
+      </div>
+    </div>
+    <div id="statusbar">
+      <span>Doc: <b id="stat-doc">0</b> w</span>
+      <span>Chapter: <b id="stat-ch">0</b> w</span>
+      <span>Section: <b id="stat-sec">0</b> w</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-chapter">
+  <div class="modal">
+    <h3>New Chapter</h3><label>Title</label>
+    <input type="text" id="mc-input" placeholder="e.g. Part One">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="mc-cancel">Cancel</button>
+      <button class="btn-primary" id="mc-ok">Create</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-section">
+  <div class="modal">
+    <h3>New Section</h3><label>Title</label>
+    <input type="text" id="ms-input" placeholder="e.g. The Arrival">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="ms-cancel">Cancel</button>
+      <button class="btn-primary" id="ms-ok">Create</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <h3>Export JSON</h3><label>File name</label>
+    <input type="text" id="me-input" placeholder="my-document">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="me-cancel">Cancel</button>
+      <button class="btn-primary" id="me-ok">Download</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+const SK = 'writer_v2';
+let S = { docTitle:'', activeId:null, activeMode:null, nodes:[] };
+let saveTimer = null;
+let pendingSecParent = null;
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const wc  = html => { if(!html) return 0; const t=html.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); return t?t.split(' ').length:0; };
+const $   = id => document.getElementById(id);
+
+function toast(msg) {
+  const t=$('toast'); t.textContent=msg; t.classList.add('visible');
+  setTimeout(()=>t.classList.remove('visible'),2200);
+}
+
+// ══════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════
+function persist() { localStorage.setItem(SK, JSON.stringify(S)); }
+function loadState() { try { const r=localStorage.getItem(SK); if(r) S=JSON.parse(r); } catch(e){} }
+
+function scheduleSave() {
+  const ind=$('save-indicator');
+  ind.textContent='saving…'; ind.className='saving';
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    persist();
+    ind.textContent='saved'; ind.className='saved';
+    setTimeout(()=>{ ind.textContent='—'; ind.className=''; },2000);
+  },900);
+}
+
+// ══════════════════════════════
+// NODE HELPERS
+// ══════════════════════════════
+const chapters = ()    => S.nodes.filter(n=>n.type==='chapter').sort((a,b)=>a.order-b.order);
+const sections = chId  => S.nodes.filter(n=>n.type==='section'&&n.parentId===chId).sort((a,b)=>a.order-b.order);
+const getNode  = id    => S.nodes.find(n=>n.id===id);
+const parentCh = secId => { const s=getNode(secId); return s?getNode(s.parentId):null; };
+
+function addChapter(title) {
+  const n={id:uid(),type:'chapter',title,parentId:null,order:chapters().length,html:'',showTitle:true};
+  S.nodes.push(n); persist(); return n;
+}
+function addSection(chId,title) {
+  const n={id:uid(),type:'section',title,parentId:chId,order:sections(chId).length,html:'',showTitle:true};
+  S.nodes.push(n); persist(); return n;
+}
+function deleteNode(id) {
+  const node=getNode(id); if(!node) return;
+  const kill=node.type==='chapter'?[id,...sections(id).map(s=>s.id)]:[id];
+  S.nodes=S.nodes.filter(n=>!kill.includes(n.id));
+  if(kill.includes(S.activeId)){S.activeId=null;S.activeMode=null;}
+  persist();
+}
+function renameNode(id,title){const n=getNode(id);if(n){n.title=title;scheduleSave();}}
+
+// ══════════════════════════════
+// REORDER OPERATIONS
+// ══════════════════════════════
+function moveSectionUp(secId) {
+  const sec = getNode(secId); if(!sec) return;
+  const secs = sections(sec.parentId);
+  const idx = secs.findIndex(s=>s.id===secId);
+  if(idx <= 0) return;
+  // swap orders
+  const tmp = secs[idx].order;
+  secs[idx].order = secs[idx-1].order;
+  secs[idx-1].order = tmp;
+  persist(); renderOutline(); renderOrganize();
+  if(S.activeMode==='chapter'&&S.activeId===sec.parentId) buildChapterSections(sec.parentId);
+  toast('Moved up');
+}
+
+function moveSectionDown(secId) {
+  const sec = getNode(secId); if(!sec) return;
+  const secs = sections(sec.parentId);
+  const idx = secs.findIndex(s=>s.id===secId);
+  if(idx < 0 || idx >= secs.length-1) return;
+  const tmp = secs[idx].order;
+  secs[idx].order = secs[idx+1].order;
+  secs[idx+1].order = tmp;
+  persist(); renderOutline(); renderOrganize();
+  if(S.activeMode==='chapter'&&S.activeId===sec.parentId) buildChapterSections(sec.parentId);
+  toast('Moved down');
+}
+
+function moveChapterUp(chId) {
+  const chs = chapters();
+  const idx = chs.findIndex(c=>c.id===chId);
+  if(idx <= 0) return;
+  const tmp = chs[idx].order;
+  chs[idx].order = chs[idx-1].order;
+  chs[idx-1].order = tmp;
+  persist(); renderOutline(); renderOrganize();
+  toast('Chapter moved up');
+}
+
+function moveChapterDown(chId) {
+  const chs = chapters();
+  const idx = chs.findIndex(c=>c.id===chId);
+  if(idx < 0 || idx >= chs.length-1) return;
+  const tmp = chs[idx].order;
+  chs[idx].order = chs[idx+1].order;
+  chs[idx+1].order = tmp;
+  persist(); renderOutline(); renderOrganize();
+  toast('Chapter moved down');
+}
+
+function reassignSection(secId, newChapterId) {
+  const sec = getNode(secId); if(!sec) return;
+  if(sec.parentId === newChapterId) return;
+  // remove from old, repack orders
+  const oldSecs = sections(sec.parentId).filter(s=>s.id!==secId);
+  oldSecs.forEach((s,i)=>s.order=i);
+  // append to new chapter
+  const newSecs = sections(newChapterId);
+  sec.parentId = newChapterId;
+  sec.order = newSecs.length;
+  persist(); renderOutline(); renderOrganize();
+  if(S.activeMode==='chapter') {
+    // refresh whichever chapter view is open
+    if(S.activeId===newChapterId || S.activeId===sec.parentId) buildChapterSections(S.activeId);
+  }
+  toast('Section moved');
+}
+
+// ══════════════════════════════
+// FLUSH
+// ══════════════════════════════
+function flushAll() {
+  if(S.activeMode==='section') flushSection();
+  if(S.activeMode==='chapter') flushChapter();
+}
+function flushSection() {
+  if(!S.activeId) return;
+  const n=getNode(S.activeId); if(!n) return;
+  n.title=$('sv-title-input').value;
+  n.html =$('sv-editor').innerHTML;
+}
+function flushChapter() {
+  if(!S.activeId) return;
+  const ch=getNode(S.activeId); if(!ch||ch.type!=='chapter') return;
+  ch.title=$('cv-title-input').value;
+  ch.html =$('cv-prose').innerHTML;
+  document.querySelectorAll('.cv-sec-block').forEach(bl=>{
+    const sec=getNode(bl.dataset.id); if(!sec) return;
+    const ti=bl.querySelector('.cv-sec-title-inp');
+    const bo=bl.querySelector('.cv-sec-body');
+    if(ti) sec.title=ti.value||sec.title;
+    if(bo) sec.html =bo.innerHTML;
+  });
+}
+
+// ══════════════════════════════
+// RENDER OUTLINE (Navigate tab)
+// ══════════════════════════════
+function renderOutline() {
+  const tree=$('outline-tree');
+  const chs=chapters();
+  if(!chs.length){
+    tree.innerHTML='<div style="padding:14px;font-size:12px;color:var(--text-dim);text-align:center;">No chapters yet</div>';
+    return;
+  }
+  tree.innerHTML = chs.map(ch=>{
+    const secs=sections(ch.id);
+    const chActive=S.activeId===ch.id&&S.activeMode==='chapter';
+    const collapsed=ch._collapsed;
+    const secHtml=secs.map(sec=>{
+      const secActive=S.activeId===sec.id&&S.activeMode==='section';
+      const titleOff=sec.showTitle===false;
+      return `<div class="outline-item level-2" data-id="${sec.id}" data-type="section">
+        <div class="outline-row${secActive?' active':''}" data-id="${sec.id}" data-type="section">
+          <span class="node-label">${esc(sec.title)}</span>
+          ${wc(sec.html)>0?`<span class="wc-badge">${wc(sec.html)}</span>`:''}
+          <button class="vis-btn${titleOff?' title-off':''}" data-vis="${sec.id}">${titleOff?'◌':'●'}</button>
+          <div class="node-actions">
+            <button class="node-btn rename-btn" data-id="${sec.id}">✎</button>
+            <button class="node-btn danger del-btn" data-id="${sec.id}">✕</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="outline-item level-1${collapsed?' node-collapsed':''}" data-id="${ch.id}" data-type="chapter">
+      <div class="outline-row${chActive?' active':''}" data-id="${ch.id}" data-type="chapter">
+        <span class="expand-btn" data-col="${ch.id}">▾</span>
+        <span class="node-label">${esc(ch.title)}</span>
+        ${wc(ch.html)>0?`<span class="wc-badge">${wc(ch.html)}</span>`:''}
+        <div class="node-actions">
+          <button class="node-btn add-sec-btn" data-id="${ch.id}">＋</button>
+          <button class="node-btn rename-btn" data-id="${ch.id}">✎</button>
+          <button class="node-btn danger del-btn" data-id="${ch.id}">✕</button>
+        </div>
+      </div>
+      <div class="children-list${collapsed?' hidden':''}">
+        ${secHtml}
+        <div class="add-sec-row" data-id="${ch.id}">＋ section</div>
+      </div>
+    </div>`;
+  }).join('');
+  bindOutlineEvents();
+}
+
+function bindOutlineEvents() {
+  const tree=$('outline-tree');
+  tree.querySelectorAll('.outline-row[data-id]').forEach(row=>{
+    row.addEventListener('click',e=>{
+      if(e.target.closest('.node-actions,.expand-btn,.vis-btn')) return;
+      flushAll();
+      if(row.dataset.type==='chapter') loadChapter(row.dataset.id);
+      else loadSection(row.dataset.id);
+    });
+  });
+  tree.querySelectorAll('.expand-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const ch=getNode(btn.dataset.col); if(ch){ch._collapsed=!ch._collapsed;renderOutline();}
+    });
+  });
+  tree.querySelectorAll('.add-sec-btn,.add-sec-row').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();openSecModal(btn.dataset.id);});
+  });
+  tree.querySelectorAll('.rename-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();inlineRename(btn.dataset.id);});
+  });
+  tree.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const node=getNode(btn.dataset.id); if(!node) return;
+      const label=node.type==='chapter'?'chapter and all its sections':'section';
+      if(!confirm(`Delete this ${label}? This cannot be undone.`)) return;
+      flushAll(); deleteNode(btn.dataset.id);
+      renderOutline(); renderOrganize(); updateStatus();
+      if(!S.activeId) showEmpty();
+      else if(S.activeMode==='chapter'){if(getNode(S.activeId))loadChapter(S.activeId);else showEmpty();}
+      else{if(getNode(S.activeId))loadSection(S.activeId);else showEmpty();}
+    });
+  });
+  tree.querySelectorAll('.vis-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const sec=getNode(btn.dataset.vis); if(!sec) return;
+      sec.showTitle=sec.showTitle===false?true:false;
+      scheduleSave(); renderOutline();
+      if(S.activeMode==='chapter'&&S.activeId===sec.parentId){
+        const bl=document.querySelector(`.cv-sec-block[data-id="${sec.id}"]`);
+        if(bl){const ti=bl.querySelector('.cv-sec-title-inp');if(ti)ti.classList.toggle('title-hidden',sec.showTitle===false);}
+      }
+    });
+  });
+}
+
+// ══════════════════════════════
+// RENDER ORGANIZE (Organize tab)
+// ══════════════════════════════
+function renderOrganize() {
+  const tree=$('organize-tree');
+  const chs=chapters();
+  if(!chs.length){
+    tree.innerHTML='<div style="padding:14px;font-size:12px;color:var(--text-dim);text-align:center;">No chapters yet</div>';
+    return;
+  }
+
+  // Build chapter options for the reassign dropdown (all chapters)
+  const chOptions = chs.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('');
+
+  tree.innerHTML = chs.map((ch, chIdx)=>{
+    const secs = sections(ch.id);
+    const secRows = secs.map((sec, sIdx)=>`
+      <div class="org-section-row" data-id="${sec.id}">
+        <span class="org-sec-label" title="${esc(sec.title)}">${esc(sec.title)}</span>
+        <button class="org-btn move-up-sec" data-id="${sec.id}" ${sIdx===0?'disabled':''} title="Move up">↑</button>
+        <button class="org-btn move-dn-sec" data-id="${sec.id}" ${sIdx===secs.length-1?'disabled':''} title="Move down">↓</button>
+        <select class="org-reassign" data-id="${sec.id}" title="Move to chapter">
+          ${chs.map(c=>`<option value="${c.id}"${c.id===ch.id?' selected':''}>${esc(c.title.length>12?c.title.slice(0,12)+'…':c.title)}</option>`).join('')}
+        </select>
+      </div>`).join('');
+
+    return `<div class="org-chapter-block">
+      <div class="org-chapter-label" style="display:flex;align-items:center;gap:6px;">
+        <span style="flex:1">${esc(ch.title)}</span>
+        <button class="org-btn move-up-ch" data-id="${ch.id}" ${chIdx===0?'disabled':''} title="Move chapter up">↑</button>
+        <button class="org-btn move-dn-ch" data-id="${ch.id}" ${chIdx===chs.length-1?'disabled':''} title="Move chapter down">↓</button>
+      </div>
+      ${secRows||'<div style="padding:4px 14px 6px;font-size:11px;color:var(--text-dim);">No sections</div>'}
+    </div>`;
+  }).join('');
+
+  // Bind events
+  tree.querySelectorAll('.move-up-sec').forEach(btn=>{
+    btn.addEventListener('click',()=>moveSectionUp(btn.dataset.id));
+  });
+  tree.querySelectorAll('.move-dn-sec').forEach(btn=>{
+    btn.addEventListener('click',()=>moveSectionDown(btn.dataset.id));
+  });
+  tree.querySelectorAll('.move-up-ch').forEach(btn=>{
+    btn.addEventListener('click',()=>moveChapterUp(btn.dataset.id));
+  });
+  tree.querySelectorAll('.move-dn-ch').forEach(btn=>{
+    btn.addEventListener('click',()=>moveChapterDown(btn.dataset.id));
+  });
+  tree.querySelectorAll('.org-reassign').forEach(sel=>{
+    sel.addEventListener('change',()=>{
+      reassignSection(sel.dataset.id, sel.value);
+    });
+  });
+}
+
+// ══════════════════════════════
+// INLINE RENAME
+// ══════════════════════════════
+function inlineRename(id) {
+  const row=document.querySelector(`#outline-tree .outline-row[data-id="${id}"]`);
+  if(!row) return;
+  const span=row.querySelector('.node-label');
+  const node=getNode(id); if(!node||!span) return;
+  const inp=document.createElement('input');
+  inp.className='node-title-input'; inp.type='text'; inp.value=node.title;
+  span.replaceWith(inp); inp.focus(); inp.select();
+  function commit(){
+    const v=inp.value.trim()||node.title;
+    renameNode(id,v); renderOutline(); renderOrganize();
+    if(S.activeId===id){
+      if(S.activeMode==='section')$('sv-title-input').value=v;
+      if(S.activeMode==='chapter')$('cv-title-input').value=v;
+      updateBreadcrumb();
+    }
+  }
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=node.title;inp.blur();}});
+}
+
+// ══════════════════════════════
+// TABS
+// ══════════════════════════════
+$('tab-outline').addEventListener('click',()=>{
+  $('tab-outline').classList.add('active'); $('tab-organize').classList.remove('active');
+  $('panel-outline').style.display='flex'; $('panel-organize').style.display='none';
+});
+$('tab-organize').addEventListener('click',()=>{
+  $('tab-organize').classList.add('active'); $('tab-outline').classList.remove('active');
+  $('panel-organize').style.display='flex'; $('panel-outline').style.display='none';
+  renderOrganize();
+});
+
+// ══════════════════════════════
+// VIEWS
+// ══════════════════════════════
+function showEmpty() {
+  $('section-view').style.display='none';
+  $('chapter-view').style.display='none';
+  $('empty-state').style.display='flex';
+  S.activeId=null; S.activeMode=null;
+}
+
+function loadSection(id) {
+  const node=getNode(id); if(!node) return;
+  S.activeId=id; S.activeMode='section';
+  $('section-view').style.display='flex';
+  $('chapter-view').style.display='none';
+  $('empty-state').style.display='none';
+  $('sv-title-input').value=node.title;
+  $('sv-editor').innerHTML=node.html||'';
+  const ch=parentCh(id);
+  $('sv-path').textContent=ch?ch.title:'—';
+  $('sv-wc').textContent=wc(node.html)+' words';
+  updateBreadcrumb(); updateStatus(); renderOutline();
+  $('sv-editor').focus();
+}
+
+function loadChapter(id) {
+  const ch=getNode(id); if(!ch||ch.type!=='chapter') return;
+  S.activeId=id; S.activeMode='chapter';
+  $('section-view').style.display='none';
+  $('chapter-view').style.display='flex';
+  $('empty-state').style.display='none';
+  $('cv-title-input').value=ch.title;
+  $('cv-prose').innerHTML=ch.html||'';
+  buildChapterSections(id);
+  updateBreadcrumb(); updateStatus(); renderOutline();
+}
+
+function buildChapterSections(chId) {
+  const container=$('cv-sections');
+  const secs=sections(chId);
+  container.innerHTML=secs.map(sec=>`
+    <div class="cv-sec-block" data-id="${sec.id}">
+      <div class="cv-sec-header">
+        <input class="cv-sec-title-inp${sec.showTitle===false?' title-hidden':''}"
+               type="text" value="${esc(sec.title)}" spellcheck="false" data-id="${sec.id}">
+        <span class="cv-focus-link" data-id="${sec.id}">focus →</span>
+      </div>
+      <div class="cv-sec-body" contenteditable="true" spellcheck="true" data-id="${sec.id}">${sec.html||''}</div>
+    </div>`).join('');
+  container.querySelectorAll('.cv-sec-body').forEach(body=>{
+    body.addEventListener('focus',()=>body.closest('.cv-sec-block').classList.add('cv-focused'));
+    body.addEventListener('blur', ()=>body.closest('.cv-sec-block').classList.remove('cv-focused'));
+    body.addEventListener('input',()=>{
+      const sec=getNode(body.dataset.id); if(sec) sec.html=body.innerHTML;
+      updateStatus(); scheduleSave();
+    });
+  });
+  container.querySelectorAll('.cv-sec-title-inp').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const sec=getNode(inp.dataset.id); if(sec) sec.title=inp.value;
+      scheduleSave(); renderOutline();
+    });
+  });
+  container.querySelectorAll('.cv-focus-link').forEach(link=>{
+    link.addEventListener('click',()=>{ flushChapter(); loadSection(link.dataset.id); });
+  });
+}
+
+// ══════════════════════════════
+// BREADCRUMB & STATUS
+// ══════════════════════════════
+function updateBreadcrumb() {
+  const el=$('bc-inner');
+  if(!S.activeId){el.textContent='—';return;}
+  const node=getNode(S.activeId);
+  if(!node){el.textContent='—';return;}
+  if(node.type==='chapter'){
+    el.innerHTML=esc(node.title);
+  } else {
+    const ch=parentCh(S.activeId);
+    el.innerHTML=`${esc(ch?ch.title:'?')}<span class="bc-sep">›</span><span class="bc-cur">${esc(node.title)}</span>`;
+  }
+}
+
+function updateStatus() {
+  $('stat-doc').textContent=wc(S.nodes.map(n=>n.html||'').join(' '));
+  if(!S.activeId) return;
+  const node=getNode(S.activeId); if(!node) return;
+  const chId=node.type==='chapter'?node.id:node.parentId;
+  const ch=getNode(chId);
+  const secs=sections(chId);
+  $('stat-ch').textContent=wc((ch?ch.html||'':'')+secs.map(s=>s.html||'').join(' '));
+  if(S.activeMode==='section') $('stat-sec').textContent=wc(node.html);
+  else $('stat-sec').textContent=wc(secs.map(s=>s.html||'').join(' '));
+}
+
+// ══════════════════════════════
+// SECTION VIEW EVENTS
+// ══════════════════════════════
+$('sv-editor').addEventListener('input',()=>{
+  if(S.activeId&&S.activeMode==='section'){
+    const n=getNode(S.activeId);
+    if(n){n.html=$('sv-editor').innerHTML;$('sv-wc').textContent=wc(n.html)+' words';}
+  }
+  updateStatus(); scheduleSave();
+});
+$('sv-title-input').addEventListener('input',e=>{
+  if(S.activeId&&S.activeMode==='section'){
+    const n=getNode(S.activeId);
+    if(n){n.title=e.target.value;renderOutline();updateBreadcrumb();}
+  }
+  scheduleSave();
+});
+
+// ══════════════════════════════
+// CHAPTER VIEW EVENTS
+// ══════════════════════════════
+$('cv-title-input').addEventListener('input',e=>{
+  if(S.activeId&&S.activeMode==='chapter'){
+    const n=getNode(S.activeId);
+    if(n){n.title=e.target.value;renderOutline();updateBreadcrumb();}
+  }
+  scheduleSave();
+});
+$('cv-prose').addEventListener('input',()=>{
+  if(S.activeId&&S.activeMode==='chapter'){
+    const n=getNode(S.activeId); if(n) n.html=$('cv-prose').innerHTML;
+  }
+  updateStatus(); scheduleSave();
+});
+$('cv-add-sec-btn').addEventListener('click',()=>{
+  if(S.activeId&&S.activeMode==='chapter') openSecModal(S.activeId);
+});
+
+// ══════════════════════════════
+// FORMAT BAR
+// ══════════════════════════════
+function fmt(cmd,val){
+  const f=document.activeElement;
+  if(f&&f.isContentEditable) f.focus(); else $('sv-editor').focus();
+  document.execCommand(cmd,false,val);
+}
+$('fmt-bold').addEventListener('click',    ()=>fmt('bold'));
+$('fmt-italic').addEventListener('click',  ()=>fmt('italic'));
+$('fmt-underline').addEventListener('click',()=>fmt('underline'));
+$('fmt-h2').addEventListener('click',      ()=>fmt('formatBlock','h2'));
+$('fmt-h3').addEventListener('click',      ()=>fmt('formatBlock','h3'));
+$('fmt-p').addEventListener('click',       ()=>fmt('formatBlock','p'));
+$('fmt-quote').addEventListener('click',   ()=>fmt('formatBlock','blockquote'));
+function syncFmtBar(){
+  $('fmt-bold').classList.toggle('active',document.queryCommandState('bold'));
+  $('fmt-italic').classList.toggle('active',document.queryCommandState('italic'));
+  $('fmt-underline').classList.toggle('active',document.queryCommandState('underline'));
+}
+document.addEventListener('keyup',syncFmtBar);
+document.addEventListener('mouseup',syncFmtBar);
+document.addEventListener('selectionchange',syncFmtBar);
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='b'){e.preventDefault();fmt('bold');}
+  if((e.ctrlKey||e.metaKey)&&e.key==='i'){e.preventDefault();fmt('italic');}
+  if((e.ctrlKey||e.metaKey)&&e.key==='u'){e.preventDefault();fmt('underline');}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();flushAll();persist();toast('Saved');}
+});
+
+// ══════════════════════════════
+// MODALS
+// ══════════════════════════════
+const openModal  = id => document.getElementById(id).classList.add('visible');
+const closeModal = id => document.getElementById(id).classList.remove('visible');
+
+function openChModal(){$('mc-input').value='';openModal('modal-chapter');setTimeout(()=>$('mc-input').focus(),80);}
+$('add-chapter-btn').addEventListener('click',openChModal);
+$('empty-add-ch').addEventListener('click',openChModal);
+$('mc-cancel').addEventListener('click',()=>closeModal('modal-chapter'));
+$('mc-ok').addEventListener('click',()=>{
+  const v=$('mc-input').value.trim(); if(!v) return;
+  const ch=addChapter(v); closeModal('modal-chapter');
+  renderOutline(); renderOrganize(); flushAll(); loadChapter(ch.id); toast('Chapter added');
+});
+$('mc-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('mc-ok').click();if(e.key==='Escape')closeModal('modal-chapter');});
+
+function openSecModal(chId){
+  pendingSecParent=chId; $('ms-input').value=''; openModal('modal-section');
+  setTimeout(()=>$('ms-input').focus(),80);
+}
+$('ms-cancel').addEventListener('click',()=>closeModal('modal-section'));
+$('ms-ok').addEventListener('click',()=>{
+  const v=$('ms-input').value.trim(); if(!v||!pendingSecParent) return;
+  const sec=addSection(pendingSecParent,v); closeModal('modal-section');
+  renderOutline(); renderOrganize(); flushAll(); loadSection(sec.id); toast('Section added');
+});
+$('ms-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('ms-ok').click();if(e.key==='Escape')closeModal('modal-section');});
+
+$('export-json-btn').addEventListener('click',()=>{
+  const suggested=(S.docTitle||'document').replace(/\s+/g,'-').toLowerCase();
+  $('me-input').value=suggested; openModal('modal-export');
+  setTimeout(()=>{$('me-input').focus();$('me-input').select();},80);
+});
+$('me-cancel').addEventListener('click',()=>closeModal('modal-export'));
+$('me-ok').addEventListener('click',()=>{
+  flushAll();
+  const raw=$('me-input').value.trim()||'document';
+  const fname=raw.endsWith('.json')?raw:raw+'.json';
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=fname; a.click();
+  URL.revokeObjectURL(url); closeModal('modal-export'); toast('Exported '+fname);
+});
+$('me-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('me-ok').click();if(e.key==='Escape')closeModal('modal-export');});
+['modal-chapter','modal-section','modal-export'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(id); });
+});
+
+// ══════════════════════════════
+// PDF EXPORT
+// ══════════════════════════════
+$('export-pdf-btn').addEventListener('click',()=>{
+  if(!S.activeId){toast('Select a chapter or section first');return;}
+  flushAll();
+  const node=getNode(S.activeId);
+  let title, bodyHtml;
+  if(S.activeMode==='section'){
+    const ch=parentCh(S.activeId);
+    title=(ch?ch.title+' — ':'')+node.title;
+    const st=node.showTitle!==false?`<h2>${esc(node.title)}</h2>`:'';
+    bodyHtml=st+(node.html||'<p><em>(empty)</em></p>');
+  } else {
+    title=node.title;
+    const secs=sections(node.id);
+    bodyHtml=(node.html?`<div class="ch-prose">${node.html}</div>`:'');
+    bodyHtml+=secs.map(sec=>{
+      const st=sec.showTitle!==false?`<h2>${esc(sec.title)}</h2>`:'';
+      return `<div class="sec-block">${st}${sec.html||''}</div>`;
+    }).join('');
+  }
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(title)}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>body{font-family:'Lora',Georgia,serif;font-size:12pt;line-height:1.8;color:#111;max-width:660px;margin:0 auto;padding:36pt 0}
+  h1{font-size:22pt;font-weight:400;margin:0 0 24pt;padding-bottom:12pt;border-bottom:1px solid #ccc}
+  h2{font-size:14pt;font-weight:500;margin:28pt 0 10pt}h3{font-size:12pt;font-weight:500;margin:18pt 0 8pt}
+  p{margin:0 0 9pt}blockquote{border-left:3px solid #ccc;margin:14pt 0;padding-left:14pt;color:#555;font-style:italic}
+  .ch-prose{margin-bottom:28pt}.sec-block{margin-bottom:28pt;page-break-inside:avoid}
+  </style></head><body><h1>${esc(title)}</h1>${bodyHtml}</body></html>`;
+  const pw=window.open('','_blank','width=820,height=900');
+  if(pw){pw.document.write(html);pw.document.close();pw.addEventListener('load',()=>{pw.focus();pw.print();});}
+  else toast('Allow popups to export PDF');
+});
+
+// ══════════════════════════════
+// JSON IMPORT
+// ══════════════════════════════
+$('import-json-btn').addEventListener('click',()=>$('import-file-input').click());
+$('import-file-input').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const imp=JSON.parse(ev.target.result);
+      if(!imp.nodes) throw new Error();
+      if(!confirm('Replace current document with imported data?')) return;
+      S=imp; persist(); init(); toast('Document imported');
+    }catch{toast('Import failed: invalid file');}
+  };
+  r.readAsText(file); e.target.value='';
+});
+
+// ══════════════════════════════
+// SIDEBAR & DOC TITLE
+// ══════════════════════════════
+$('toggle-sidebar').addEventListener('click',()=>$('sidebar').classList.toggle('collapsed'));
+$('doc-title-input').addEventListener('input',e=>{S.docTitle=e.target.value;scheduleSave();});
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+function init() {
+  loadState();
+  $('doc-title-input').value=S.docTitle||'';
+  renderOutline();
+  if(S.activeId&&getNode(S.activeId)){
+    if(S.activeMode==='section') loadSection(S.activeId);
+    else loadChapter(S.activeId);
+  } else {
+    showEmpty();
+  }
+  updateStatus();
+}
+
+init();
+</script>
+</body>
+</html>
