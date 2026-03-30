@@ -44,14 +44,6 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   transition: width var(--dur-slow) var(--ease-out), min-width var(--dur-slow) var(--ease-out);
 }
 #sidebar.collapsed { width: 0; min-width: 0; }
-#sidebar-header { padding: 18px 14px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-#doc-title-input {
-  width: 100%; background: transparent; border: none; color: var(--text);
-  font-family: var(--font-prose); font-size: 14px; font-weight: 500; outline: none;
-  padding: 3px 0; border-bottom: 1px solid transparent; transition: border-color var(--dur-base);
-}
-#doc-title-input:focus { border-bottom-color: var(--accent); }
-#doc-title-input::placeholder { color: var(--text-dim); }
 .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-top: 12px; }
 
 /* ── TABS ── */
@@ -159,19 +151,22 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .add-sec-row:hover { background: var(--surface-2); color: var(--text-muted); border-color: var(--border-hover); }
 
 /* ── SIDEBAR FOOTER ── */
-#sidebar-footer { padding: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
-.sidebar-btn {
-  display: flex; align-items: center; gap: 7px; padding: 7px 9px;
-  background: none; border: 1px solid var(--border); border-radius: 5px;
-  color: var(--text-muted); cursor: pointer; font-family: var(--font-ui); font-size: 12px;
-  transition: all var(--dur-fast); width: 100%; text-align: left;
+#sidebar-footer {
+  padding: 8px 10px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 4px; flex-shrink: 0;
 }
-.sidebar-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
+.sidebar-icon-btn {
+  background: none; border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text-muted); cursor: pointer; font-family: var(--font-ui);
+  font-size: 16px; line-height: 1; padding: 6px 10px;
+  transition: all var(--dur-fast); min-width: 36px; text-align: center;
+}
+.sidebar-icon-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
 
 /* ── MAIN ── */
 #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 #topbar {
-  display: flex; align-items: center; gap: 8px; padding: 9px 18px;
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px;
   border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
 }
 #toggle-sidebar {
@@ -180,10 +175,17 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   transition: color var(--dur-fast), background var(--dur-fast); flex-shrink: 0;
 }
 #toggle-sidebar:hover { color: var(--text); background: var(--surface-2); }
-#breadcrumb { flex: 1; font-size: 13px; color: var(--text-muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-#breadcrumb .bc-sep { color: var(--text-dim); margin: 0 4px; }
-#breadcrumb .bc-cur { color: var(--text); }
-#topbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+#doc-title-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: var(--font-prose); font-size: 16px; font-weight: 500;
+  letter-spacing: -0.01em; padding: 3px 4px; border-radius: 4px;
+  transition: background var(--dur-fast);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#doc-title-input:hover { background: var(--surface-2); }
+#doc-title-input:focus { background: var(--surface-2); }
+#doc-title-input::placeholder { color: var(--text-dim); }
+#topbar-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
 .top-btn {
   background: none; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer;
   padding: 5px 10px; border-radius: 5px; font-family: var(--font-ui); font-size: 12px;
@@ -193,21 +195,112 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .top-btn.accent { background: var(--accent-dim); border-color: rgba(200,169,126,0.25); color: var(--accent); }
 .top-btn.accent:hover { background: rgba(200,169,126,0.2); color: var(--accent-hover); }
 
-#format-bar {
-  display: flex; align-items: center; gap: 2px; padding: 5px 18px;
-  border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface);
-}
+#format-bar { display: none; } /* removed — replaced by floating #selection-toolbar */
 .fmt-btn {
   background: none; border: none; color: var(--text-dim); cursor: pointer;
   padding: 4px 7px; border-radius: 4px; font-size: 13px; font-family: var(--font-ui);
   transition: all var(--dur-fast); line-height: 1.2;
 }
-.fmt-btn:hover { background: var(--surface-2); color: var(--text); }
+.fmt-btn:hover { background: var(--surface-3); color: var(--text); }
 .fmt-btn.active { background: var(--accent-dim); color: var(--accent); }
 .fmt-sep { width: 1px; height: 14px; background: var(--border); margin: 0 3px; }
-#save-indicator { margin-left: auto; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+#save-indicator {
+  font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);
+  flex-shrink: 0; white-space: nowrap;
+}
 #save-indicator.saving { color: var(--accent); }
 #save-indicator.saved  { color: var(--success); }
+
+/* ── FLOATING SELECTION TOOLBAR ── */
+#selection-toolbar {
+  position: fixed; z-index: 150;
+  display: flex; align-items: center; gap: 2px; padding: 4px 6px;
+  background: var(--surface-2); border: 1px solid var(--border-hover);
+  border-radius: 7px; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  opacity: 0; pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+#selection-toolbar.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+/* ── OVERFLOW MENU ── */
+.overflow-btn {
+  opacity: 0; font-size: 14px; letter-spacing: 0.05em; padding: 2px 5px;
+  transition: opacity var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
+  flex-shrink: 0;
+}
+.outline-row:hover .overflow-btn { opacity: 1; }
+/* Always visible on touch — managed via JS body.touch-device class */
+body.touch-device .overflow-btn { opacity: 1; }
+body.touch-device .node-actions  { opacity: 0 !important; }
+body.touch-device .vis-btn:not(.title-off) { opacity: 0 !important; }
+
+.overflow-menu {
+  position: fixed; z-index: 160;
+  background: var(--surface-2); border: 1px solid var(--border-hover);
+  border-radius: 7px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  padding: 4px; min-width: 148px;
+  animation: menu-in var(--dur-fast) var(--ease-out);
+}
+@keyframes menu-in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+.overflow-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 4px; cursor: pointer;
+  font-size: 12.5px; color: var(--text-muted); font-family: var(--font-ui);
+  transition: background var(--dur-fast), color var(--dur-fast);
+  white-space: nowrap; border: none; background: none; width: 100%; text-align: left;
+}
+.overflow-menu-item:hover { background: var(--surface-3); color: var(--text); }
+.overflow-menu-item.danger:hover { color: var(--danger); }
+.overflow-menu-sep { height: 1px; background: var(--border); margin: 3px 6px; }
+
+/* ── SIDEBAR BACKDROP (mobile drawer) ── */
+#sidebar-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 40;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+}
+body.sidebar-open #sidebar-backdrop { display: block; }
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+
+/* Tablet: 600–1023px */
+@media (max-width: 1023px) {
+  :root { --sidebar-w: 248px; }
+  #sidebar { position: relative; z-index: 50; }
+  #sidebar.collapsed { width: 0; min-width: 0; }
+  #toggle-sidebar { padding: 8px 10px; font-size: 18px; min-width: 44px; min-height: 44px; }
+  .sidebar-tab { min-height: 44px; font-size: 12px; }
+  .sidebar-icon-btn { min-width: 44px; min-height: 44px; font-size: 18px; }
+  .outline-row { min-height: 44px; padding: 0 10px 0 12px; }
+  .outline-item.level-2 > .outline-row { padding-left: 24px; }
+  .org-section-row { min-height: 44px; }
+  .org-btn { min-height: 36px; min-width: 36px; }
+  .top-btn { min-height: 36px; padding: 6px 14px; }
+  .btn-primary, .btn-ghost { min-height: 44px; padding: 10px 18px; }
+  .empty-action { min-height: 44px; padding: 10px 24px; }
+  .overflow-btn { opacity: 1; }
+  .node-actions { opacity: 0 !important; }
+  .vis-btn:not(.title-off) { opacity: 0 !important; }
+}
+
+/* Mobile: < 600px — sidebar becomes a drawer overlay */
+@media (max-width: 599px) {
+  #sidebar {
+    position: fixed; top: 0; left: 0; height: 100%; z-index: 50;
+    transform: translateX(0);
+    transition: transform var(--dur-slow) var(--ease-out),
+                width var(--dur-slow) var(--ease-out),
+                min-width var(--dur-slow) var(--ease-out);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+  }
+  #sidebar.collapsed {
+    width: var(--sidebar-w) !important; min-width: var(--sidebar-w) !important;
+    transform: translateX(calc(-1 * var(--sidebar-w)));
+  }
+  #main { width: 100%; }
+  body.sidebar-open #sidebar-backdrop { display: block; }
+  #canvas-wrap { padding: 32px 16px 80px; }
+}
 
 /* ── CANVAS ── */
 #canvas-wrap {
@@ -280,11 +373,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 
 #empty-state {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 10px; padding: 40px; text-align: center;
+  justify-content: center; gap: 14px; padding: 40px; text-align: center;
 }
-.empty-icon { font-size: 36px; opacity: 0.15; margin-bottom: 6px; }
-#empty-state h2 { font-family: var(--font-prose); font-size: 20px; font-weight: 400; color: var(--text-muted); }
-#empty-state p { font-size: 13px; color: var(--text-dim); max-width: 280px; line-height: 1.6; }
+.empty-icon { font-size: 42px; opacity: 0.2; margin-bottom: 4px; }
+#empty-state h2 { font-family: var(--font-prose); font-size: 22px; font-weight: 400; color: var(--text-muted); letter-spacing: -0.01em; }
+#empty-state p { font-family: var(--font-prose); font-size: 14px; font-style: italic; color: var(--text-dim); max-width: 300px; line-height: 1.7; }
 .empty-action {
   margin-top: 6px; padding: 8px 20px; background: var(--accent-dim);
   border: 1px solid rgba(200,169,126,0.25); border-radius: 6px;
@@ -341,8 +434,24 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 }
 #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ── FOCUS MODE ── */
+body.focus-mode #sidebar,
+body.focus-mode #topbar,
+body.focus-mode #statusbar { display: none !important; }
+body.focus-mode #canvas-wrap { padding-top: 80px; }
+#focus-exit {
+  position: fixed; top: 16px; right: 16px; z-index: 90;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-dim); cursor: pointer;
+  font-family: var(--font-ui); font-size: 11px; padding: 5px 10px;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--dur-base);
+}
+body.focus-mode #focus-exit { opacity: 1; pointer-events: all; }
+#focus-exit:hover { color: var(--text); border-color: var(--border-hover); }
+
 @media print {
-  #sidebar, #topbar, #format-bar, #statusbar { display: none !important; }
+  #sidebar, #topbar, #selection-toolbar, #statusbar { display: none !important; }
   #app { display: block; }
   #main, #canvas-wrap { overflow: visible; }
   #canvas-wrap { padding: 0; }
@@ -360,28 +469,23 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 <body>
 <div id="app">
   <aside id="sidebar">
-    <div id="sidebar-header">
-      <input id="doc-title-input" type="text" placeholder="Untitled Document" spellcheck="false">
-      <div class="sidebar-label">Outline</div>
-    </div>
-
     <div id="sidebar-tabs">
-      <button class="sidebar-tab active" id="tab-outline">Navigate</button>
-      <button class="sidebar-tab" id="tab-organize">Organize</button>
+      <button class="sidebar-tab active" id="tab-outline" data-tab="outline">Navigate</button>
+      <button class="sidebar-tab" id="tab-organize" data-tab="organize">Organize</button>
     </div>
 
-    <div id="panel-outline">
+    <div id="panel-outline" data-panel="outline">
       <div id="outline-tree"></div>
     </div>
 
-    <div id="panel-organize">
+    <div id="panel-organize" data-panel="organize">
       <div id="organize-tree"></div>
     </div>
 
     <div id="sidebar-footer">
-      <button class="sidebar-btn" id="add-chapter-btn">＋ &nbsp;Add Chapter</button>
-      <button class="sidebar-btn" id="export-json-btn">↓ &nbsp;Export JSON</button>
-      <button class="sidebar-btn" id="import-json-btn">↑ &nbsp;Import JSON</button>
+      <button class="sidebar-icon-btn" id="add-chapter-btn" title="Add chapter">＋</button>
+      <div style="flex:1"></div>
+      <button class="sidebar-icon-btn" id="file-ops-btn" title="File operations">⋯</button>
       <input type="file" id="import-file-input" accept=".json" style="display:none">
     </div>
   </aside>
@@ -389,21 +493,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   <div id="main">
     <div id="topbar">
       <button id="toggle-sidebar">☰</button>
-      <div id="breadcrumb"><span id="bc-inner">—</span></div>
+      <input id="doc-title-input" type="text" placeholder="Untitled Document" spellcheck="false">
       <div id="topbar-actions">
+        <span id="save-indicator">—</span>
         <button class="top-btn accent" id="export-pdf-btn">Export PDF</button>
       </div>
-    </div>
-    <div id="format-bar">
-      <button class="fmt-btn" id="fmt-bold"><b>B</b></button>
-      <button class="fmt-btn" id="fmt-italic"><i>I</i></button>
-      <button class="fmt-btn" id="fmt-underline"><u>U</u></button>
-      <div class="fmt-sep"></div>
-      <button class="fmt-btn" id="fmt-h2">H2</button>
-      <button class="fmt-btn" id="fmt-h3">H3</button>
-      <button class="fmt-btn" id="fmt-p">¶</button>
-      <button class="fmt-btn" id="fmt-quote">"</button>
-      <div id="save-indicator">—</div>
     </div>
     <div id="canvas-wrap">
       <div id="section-view">
@@ -419,18 +513,42 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       </div>
       <div id="empty-state">
         <div class="empty-icon">✦</div>
-        <h2>Nothing selected</h2>
-        <p>Add a chapter to get started, then select any item to write.</p>
+        <h2>A place for long-form thinking.</h2>
+        <p>Organize your writing into chapters and sections. Select anything in the outline to begin — or start fresh below.</p>
         <button class="empty-action" id="empty-add-ch">Add First Chapter</button>
       </div>
     </div>
     <div id="statusbar">
-      <span>Doc: <b id="stat-doc">0</b> w</span>
-      <span>Chapter: <b id="stat-ch">0</b> w</span>
-      <span>Section: <b id="stat-sec">0</b> w</span>
+      <span id="stat-scope-label">Section</span>
+      <b id="stat-words">0</b> words
+      <span id="stat-read" style="margin-left:4px;"></span>
     </div>
   </div>
 </div>
+
+<!-- Focus mode exit hint -->
+<button id="focus-exit">Press Esc to exit</button>
+
+<!-- File operations popover -->
+<div id="file-ops-menu" class="overflow-menu" style="display:none">
+  <button class="overflow-menu-item" id="export-json-btn">↓ Export JSON</button>
+  <button class="overflow-menu-item" id="import-json-btn">↑ Import JSON</button>
+</div>
+
+<!-- Floating selection toolbar -->
+<div id="selection-toolbar" aria-label="Format selection">
+  <button class="fmt-btn" id="fmt-bold"><b>B</b></button>
+  <button class="fmt-btn" id="fmt-italic"><i>I</i></button>
+  <button class="fmt-btn" id="fmt-underline"><u>U</u></button>
+  <div class="fmt-sep"></div>
+  <button class="fmt-btn" id="fmt-h2">H2</button>
+  <button class="fmt-btn" id="fmt-h3">H3</button>
+  <button class="fmt-btn" id="fmt-p">¶</button>
+  <button class="fmt-btn" id="fmt-quote">"</button>
+</div>
+
+<!-- Sidebar backdrop (mobile drawer overlay) -->
+<div id="sidebar-backdrop"></div>
 
 <!-- Modals -->
 <div class="modal-overlay" id="modal-chapter">
@@ -463,6 +581,16 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="modal-import-confirm">
+  <div class="modal">
+    <h3>Replace document?</h3>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:4px;">This will replace your current document with the imported file. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="mic-cancel">Cancel</button>
+      <button class="btn-primary" id="mic-ok">Replace &amp; Import</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
@@ -478,10 +606,10 @@ let pendingSecParent = null;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const wc  = html => { if(!html) return 0; const t=html.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); return t?t.split(' ').length:0; };
-const $   = id => document.getElementById(id);
+const el  = id => document.getElementById(id);
 
 function toast(msg) {
-  const t=$('toast'); t.textContent=msg; t.classList.add('visible');
+  const t=el('toast'); t.textContent=msg; t.classList.add('visible');
   setTimeout(()=>t.classList.remove('visible'),2200);
 }
 
@@ -489,10 +617,31 @@ function toast(msg) {
 // PERSISTENCE
 // ══════════════════════════════
 function persist() { localStorage.setItem(SK, JSON.stringify(S)); }
-function loadState() { try { const r=localStorage.getItem(SK); if(r) S=JSON.parse(r); } catch(e){} }
+function loadState() {
+  try {
+    const r=localStorage.getItem(SK);
+    if(r) S=JSON.parse(r);
+  } catch(e){}
+  // ── Migration: if nodes still carry .order fields (legacy data),
+  // sort S.nodes into the correct display order then strip the field.
+  // This runs once; after persist() the field is gone from storage.
+  if(S.nodes.length && S.nodes[0].order !== undefined) {
+    const chs = S.nodes.filter(n=>n.type==='chapter').sort((a,b)=>a.order-b.order);
+    const sorted = [];
+    chs.forEach(ch=>{
+      sorted.push(ch);
+      S.nodes.filter(n=>n.type==='section'&&n.parentId===ch.id)
+             .sort((a,b)=>a.order-b.order)
+             .forEach(s=>sorted.push(s));
+    });
+    sorted.forEach(n=>delete n.order);
+    S.nodes=sorted;
+    persist(); // write normalised data immediately
+  }
+}
 
 function scheduleSave() {
-  const ind=$('save-indicator');
+  const ind=el('save-indicator');
   ind.textContent='saving…'; ind.className='saving';
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
@@ -504,102 +653,131 @@ function scheduleSave() {
 
 // ══════════════════════════════
 // NODE HELPERS
+// Order is implicit: S.nodes array position is the source of truth.
+// chapters() and sections() filter without sorting.
 // ══════════════════════════════
-const chapters = ()    => S.nodes.filter(n=>n.type==='chapter').sort((a,b)=>a.order-b.order);
-const sections = chId  => S.nodes.filter(n=>n.type==='section'&&n.parentId===chId).sort((a,b)=>a.order-b.order);
+const chapters = ()    => S.nodes.filter(n=>n.type==='chapter');
+const sections = chId  => S.nodes.filter(n=>n.type==='section'&&n.parentId===chId);
 const getNode  = id    => S.nodes.find(n=>n.id===id);
 const parentCh = secId => { const s=getNode(secId); return s?getNode(s.parentId):null; };
 
 function addChapter(title) {
-  const n={id:uid(),type:'chapter',title,parentId:null,order:chapters().length,html:'',showTitle:true};
+  const n={id:uid(),type:'chapter',title,parentId:null,html:'',showTitle:true};
   S.nodes.push(n); persist(); return n;
 }
 function addSection(chId,title) {
-  const n={id:uid(),type:'section',title,parentId:chId,order:sections(chId).length,html:'',showTitle:true};
-  S.nodes.push(n); persist(); return n;
+  // Insert immediately after the last section belonging to this chapter,
+  // or at the end of S.nodes if none exist yet.
+  const n={id:uid(),type:'section',title,parentId:chId,html:'',showTitle:true};
+  const secs=sections(chId);
+  if(secs.length){
+    const lastIdx=S.nodes.lastIndexOf(secs[secs.length-1]);
+    S.nodes.splice(lastIdx+1,0,n);
+  } else {
+    S.nodes.push(n);
+  }
+  persist(); return n;
 }
 function deleteNode(id) {
   const node=getNode(id); if(!node) return;
-  const kill=node.type==='chapter'?[id,...sections(id).map(s=>s.id)]:[id];
-  S.nodes=S.nodes.filter(n=>!kill.includes(n.id));
-  if(kill.includes(S.activeId)){S.activeId=null;S.activeMode=null;}
+  const killIds=node.type==='chapter'?new Set([id,...sections(id).map(s=>s.id)]):new Set([id]);
+  S.nodes=S.nodes.filter(n=>!killIds.has(n.id));
+  if(killIds.has(S.activeId)){S.activeId=null;S.activeMode=null;}
   persist();
 }
 function renameNode(id,title){const n=getNode(id);if(n){n.title=title;scheduleSave();}}
 
 // ══════════════════════════════
 // REORDER OPERATIONS
+// Moves are splice operations on S.nodes directly.
 // ══════════════════════════════
+
+// Swap two nodes by their S.nodes indices
+function swapNodes(iA, iB) {
+  [S.nodes[iA], S.nodes[iB]] = [S.nodes[iB], S.nodes[iA]];
+}
+
 function moveSectionUp(secId) {
-  const sec = getNode(secId); if(!sec) return;
-  const secs = sections(sec.parentId);
-  const idx = secs.findIndex(s=>s.id===secId);
-  if(idx <= 0) return;
-  // swap orders
-  const tmp = secs[idx].order;
-  secs[idx].order = secs[idx-1].order;
-  secs[idx-1].order = tmp;
+  const sec=getNode(secId); if(!sec) return;
+  const secs=sections(sec.parentId);
+  const pos=secs.findIndex(s=>s.id===secId);
+  if(pos<=0) return;
+  swapNodes(S.nodes.indexOf(secs[pos]), S.nodes.indexOf(secs[pos-1]));
   persist(); renderOutline(); renderOrganize();
   if(S.activeMode==='chapter'&&S.activeId===sec.parentId) buildChapterSections(sec.parentId);
   toast('Moved up');
 }
 
 function moveSectionDown(secId) {
-  const sec = getNode(secId); if(!sec) return;
-  const secs = sections(sec.parentId);
-  const idx = secs.findIndex(s=>s.id===secId);
-  if(idx < 0 || idx >= secs.length-1) return;
-  const tmp = secs[idx].order;
-  secs[idx].order = secs[idx+1].order;
-  secs[idx+1].order = tmp;
+  const sec=getNode(secId); if(!sec) return;
+  const secs=sections(sec.parentId);
+  const pos=secs.findIndex(s=>s.id===secId);
+  if(pos<0||pos>=secs.length-1) return;
+  swapNodes(S.nodes.indexOf(secs[pos]), S.nodes.indexOf(secs[pos+1]));
   persist(); renderOutline(); renderOrganize();
   if(S.activeMode==='chapter'&&S.activeId===sec.parentId) buildChapterSections(sec.parentId);
   toast('Moved down');
 }
 
 function moveChapterUp(chId) {
-  const chs = chapters();
-  const idx = chs.findIndex(c=>c.id===chId);
-  if(idx <= 0) return;
-  const tmp = chs[idx].order;
-  chs[idx].order = chs[idx-1].order;
-  chs[idx-1].order = tmp;
+  const chs=chapters();
+  const pos=chs.findIndex(c=>c.id===chId);
+  if(pos<=0) return;
+  // A chapter and all its sections form a contiguous block in S.nodes.
+  // Swap the entire block with the previous chapter's block.
+  const chA=chs[pos-1], chB=chs[pos];
+  const blockA=[chA,...sections(chA.id)];
+  const blockB=[chB,...sections(chB.id)];
+  const startA=S.nodes.indexOf(chA);
+  S.nodes.splice(startA, blockA.length+blockB.length, ...blockB, ...blockA);
   persist(); renderOutline(); renderOrganize();
   toast('Chapter moved up');
 }
 
 function moveChapterDown(chId) {
-  const chs = chapters();
-  const idx = chs.findIndex(c=>c.id===chId);
-  if(idx < 0 || idx >= chs.length-1) return;
-  const tmp = chs[idx].order;
-  chs[idx].order = chs[idx+1].order;
-  chs[idx+1].order = tmp;
+  const chs=chapters();
+  const pos=chs.findIndex(c=>c.id===chId);
+  if(pos<0||pos>=chs.length-1) return;
+  const chA=chs[pos], chB=chs[pos+1];
+  const blockA=[chA,...sections(chA.id)];
+  const blockB=[chB,...sections(chB.id)];
+  const startA=S.nodes.indexOf(chA);
+  S.nodes.splice(startA, blockA.length+blockB.length, ...blockB, ...blockA);
   persist(); renderOutline(); renderOrganize();
   toast('Chapter moved down');
 }
 
 function reassignSection(secId, newChapterId) {
-  const sec = getNode(secId); if(!sec) return;
-  if(sec.parentId === newChapterId) return;
-  // remove from old, repack orders
-  const oldSecs = sections(sec.parentId).filter(s=>s.id!==secId);
-  oldSecs.forEach((s,i)=>s.order=i);
-  // append to new chapter
-  const newSecs = sections(newChapterId);
-  sec.parentId = newChapterId;
-  sec.order = newSecs.length;
-  persist(); renderOutline(); renderOrganize();
-  if(S.activeMode==='chapter') {
-    // refresh whichever chapter view is open
-    if(S.activeId===newChapterId || S.activeId===sec.parentId) buildChapterSections(S.activeId);
+  const sec=getNode(secId); if(!sec) return;
+  if(sec.parentId===newChapterId) return;
+  const oldChapterId=sec.parentId;
+  // Remove from current position in S.nodes
+  S.nodes.splice(S.nodes.indexOf(sec), 1);
+  // Append after the last section of the target chapter
+  sec.parentId=newChapterId;
+  const newSecs=sections(newChapterId);
+  if(newSecs.length){
+    const lastIdx=S.nodes.lastIndexOf(newSecs[newSecs.length-1]);
+    S.nodes.splice(lastIdx+1,0,sec);
+  } else {
+    // No sections yet — insert immediately after the chapter node
+    const chIdx=S.nodes.indexOf(getNode(newChapterId));
+    S.nodes.splice(chIdx+1,0,sec);
   }
+  persist(); renderOutline(); renderOrganize();
+  if(S.activeMode==='chapter'&&
+    (S.activeId===newChapterId||S.activeId===oldChapterId))
+    buildChapterSections(S.activeId);
   toast('Section moved');
 }
 
 // ══════════════════════════════
 // FLUSH
 // ══════════════════════════════
+// Section body and chapter section bodies write to state on every input event
+// (see buildChapterSections and sv-editor listeners below).
+// flushAll() only needs to catch title fields and chapter-level prose,
+// which aren't wired to live input sync.
 function flushAll() {
   if(S.activeMode==='section') flushSection();
   if(S.activeMode==='chapter') flushChapter();
@@ -607,28 +785,23 @@ function flushAll() {
 function flushSection() {
   if(!S.activeId) return;
   const n=getNode(S.activeId); if(!n) return;
-  n.title=$('sv-title-input').value;
-  n.html =$('sv-editor').innerHTML;
+  n.title=el('sv-title-input').value;
+  n.html =el('sv-editor').innerHTML;
 }
 function flushChapter() {
   if(!S.activeId) return;
   const ch=getNode(S.activeId); if(!ch||ch.type!=='chapter') return;
-  ch.title=$('cv-title-input').value;
-  ch.html =$('cv-prose').innerHTML;
-  document.querySelectorAll('.cv-sec-block').forEach(bl=>{
-    const sec=getNode(bl.dataset.id); if(!sec) return;
-    const ti=bl.querySelector('.cv-sec-title-inp');
-    const bo=bl.querySelector('.cv-sec-body');
-    if(ti) sec.title=ti.value||sec.title;
-    if(bo) sec.html =bo.innerHTML;
-  });
+  ch.title=el('cv-title-input').value;
+  ch.html =el('cv-prose').innerHTML;
+  // Section titles in chapter view are synced live via buildChapterSections input handlers.
+  // Section html bodies are also synced live. No DOM re-query needed here.
 }
 
 // ══════════════════════════════
 // RENDER OUTLINE (Navigate tab)
 // ══════════════════════════════
 function renderOutline() {
-  const tree=$('outline-tree');
+  const tree=el('outline-tree');
   const chs=chapters();
   if(!chs.length){
     tree.innerHTML='<div style="padding:14px;font-size:12px;color:var(--text-dim);text-align:center;">No chapters yet</div>';
@@ -641,28 +814,32 @@ function renderOutline() {
     const secHtml=secs.map(sec=>{
       const secActive=S.activeId===sec.id&&S.activeMode==='section';
       const titleOff=sec.showTitle===false;
+      const secWc=wc(sec.html);
       return `<div class="outline-item level-2" data-id="${sec.id}" data-type="section">
         <div class="outline-row${secActive?' active':''}" data-id="${sec.id}" data-type="section">
           <span class="node-label">${esc(sec.title)}</span>
-          ${wc(sec.html)>0?`<span class="wc-badge">${wc(sec.html)}</span>`:''}
+          ${secWc>0?`<span class="wc-badge">${secWc}</span>`:''}
           <button class="vis-btn${titleOff?' title-off':''}" data-vis="${sec.id}">${titleOff?'◌':'●'}</button>
           <div class="node-actions">
             <button class="node-btn rename-btn" data-id="${sec.id}">✎</button>
             <button class="node-btn danger del-btn" data-id="${sec.id}">✕</button>
           </div>
+          <button class="node-btn overflow-btn" data-id="${sec.id}" data-type="section" title="More actions">⋯</button>
         </div>
       </div>`;
     }).join('');
+    const chWc=wc(ch.html);
     return `<div class="outline-item level-1${collapsed?' node-collapsed':''}" data-id="${ch.id}" data-type="chapter">
       <div class="outline-row${chActive?' active':''}" data-id="${ch.id}" data-type="chapter">
         <span class="expand-btn" data-col="${ch.id}">▾</span>
         <span class="node-label">${esc(ch.title)}</span>
-        ${wc(ch.html)>0?`<span class="wc-badge">${wc(ch.html)}</span>`:''}
+        ${chWc>0?`<span class="wc-badge">${chWc}</span>`:''}
         <div class="node-actions">
           <button class="node-btn add-sec-btn" data-id="${ch.id}">＋</button>
           <button class="node-btn rename-btn" data-id="${ch.id}">✎</button>
           <button class="node-btn danger del-btn" data-id="${ch.id}">✕</button>
         </div>
+        <button class="node-btn overflow-btn" data-id="${ch.id}" data-type="chapter" title="More actions">⋯</button>
       </div>
       <div class="children-list${collapsed?' hidden':''}">
         ${secHtml}
@@ -670,55 +847,72 @@ function renderOutline() {
       </div>
     </div>`;
   }).join('');
-  bindOutlineEvents();
+  bindOutlineActiveClass();
 }
 
-function bindOutlineEvents() {
-  const tree=$('outline-tree');
-  tree.querySelectorAll('.outline-row[data-id]').forEach(row=>{
-    row.addEventListener('click',e=>{
-      if(e.target.closest('.node-actions,.expand-btn,.vis-btn')) return;
-      flushAll();
-      if(row.dataset.type==='chapter') loadChapter(row.dataset.id);
-      else loadSection(row.dataset.id);
-    });
+// Update only active-class states without full re-render
+function bindOutlineActiveClass() {
+  el('outline-tree').querySelectorAll('.outline-row').forEach(row=>{
+    const isActive = row.dataset.id===S.activeId &&
+      ((row.dataset.type==='chapter'&&S.activeMode==='chapter')||
+       (row.dataset.type==='section'&&S.activeMode==='section'));
+    row.classList.toggle('active', isActive);
   });
-  tree.querySelectorAll('.expand-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const ch=getNode(btn.dataset.col); if(ch){ch._collapsed=!ch._collapsed;renderOutline();}
-    });
-  });
-  tree.querySelectorAll('.add-sec-btn,.add-sec-row').forEach(btn=>{
-    btn.addEventListener('click',e=>{e.stopPropagation();openSecModal(btn.dataset.id);});
-  });
-  tree.querySelectorAll('.rename-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{e.stopPropagation();inlineRename(btn.dataset.id);});
-  });
-  tree.querySelectorAll('.del-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const node=getNode(btn.dataset.id); if(!node) return;
+}
+
+// ══════════════════════════════
+// OUTLINE EVENT DELEGATION (attached once at init)
+// ══════════════════════════════
+function initOutlineEvents() {
+  el('outline-tree').addEventListener('click', e=>{
+    // Expand/collapse toggle
+    const expBtn = e.target.closest('.expand-btn');
+    if(expBtn){
+      const ch=getNode(expBtn.dataset.col);
+      if(ch){ch._collapsed=!ch._collapsed; renderOutline();}
+      return;
+    }
+    // Add section buttons (inline + footer row)
+    const addSecBtn = e.target.closest('.add-sec-btn, .add-sec-row');
+    if(addSecBtn){ e.stopPropagation(); openSecModal(addSecBtn.dataset.id); return; }
+    // Rename
+    const renameBtn = e.target.closest('.rename-btn');
+    if(renameBtn){ inlineRename(renameBtn.dataset.id); return; }
+    // Overflow menu
+    const overflowBtn = e.target.closest('.overflow-btn');
+    if(overflowBtn){ openOverflowMenu(overflowBtn.dataset.id, overflowBtn.dataset.type, overflowBtn); return; }
+    // Delete
+    const delBtn = e.target.closest('.del-btn');
+    if(delBtn){
+      const node=getNode(delBtn.dataset.id); if(!node) return;
       const label=node.type==='chapter'?'chapter and all its sections':'section';
       if(!confirm(`Delete this ${label}? This cannot be undone.`)) return;
-      flushAll(); deleteNode(btn.dataset.id);
+      flushAll(); deleteNode(delBtn.dataset.id);
       renderOutline(); renderOrganize(); updateStatus();
       if(!S.activeId) showEmpty();
       else if(S.activeMode==='chapter'){if(getNode(S.activeId))loadChapter(S.activeId);else showEmpty();}
       else{if(getNode(S.activeId))loadSection(S.activeId);else showEmpty();}
-    });
-  });
-  tree.querySelectorAll('.vis-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const sec=getNode(btn.dataset.vis); if(!sec) return;
-      sec.showTitle=sec.showTitle===false?true:false;
+      return;
+    }
+    // Visibility toggle (section title show/hide)
+    const visBtn = e.target.closest('.vis-btn');
+    if(visBtn){
+      const sec=getNode(visBtn.dataset.vis); if(!sec) return;
+      sec.showTitle = sec.showTitle===false ? true : false;
       scheduleSave(); renderOutline();
       if(S.activeMode==='chapter'&&S.activeId===sec.parentId){
         const bl=document.querySelector(`.cv-sec-block[data-id="${sec.id}"]`);
         if(bl){const ti=bl.querySelector('.cv-sec-title-inp');if(ti)ti.classList.toggle('title-hidden',sec.showTitle===false);}
       }
-    });
+      return;
+    }
+    // Row click — navigate (must not be inside any action zone)
+    const row = e.target.closest('.outline-row[data-id]');
+    if(row && !e.target.closest('.node-actions,.expand-btn,.vis-btn,.overflow-btn')){
+      flushAll();
+      if(row.dataset.type==='chapter') loadChapter(row.dataset.id);
+      else loadSection(row.dataset.id);
+    }
   });
 }
 
@@ -726,7 +920,7 @@ function bindOutlineEvents() {
 // RENDER ORGANIZE (Organize tab)
 // ══════════════════════════════
 function renderOrganize() {
-  const tree=$('organize-tree');
+  const tree=el('organize-tree');
   const chs=chapters();
   if(!chs.length){
     tree.innerHTML='<div style="padding:14px;font-size:12px;color:var(--text-dim);text-align:center;">No chapters yet</div>';
@@ -793,9 +987,9 @@ function inlineRename(id) {
     const v=inp.value.trim()||node.title;
     renameNode(id,v); renderOutline(); renderOrganize();
     if(S.activeId===id){
-      if(S.activeMode==='section')$('sv-title-input').value=v;
-      if(S.activeMode==='chapter')$('cv-title-input').value=v;
-      updateBreadcrumb();
+      if(S.activeMode==='section')el('sv-title-input').value=v;
+      if(S.activeMode==='chapter')el('cv-title-input').value=v;
+      
     }
   }
   inp.addEventListener('blur',commit);
@@ -805,55 +999,55 @@ function inlineRename(id) {
 // ══════════════════════════════
 // TABS
 // ══════════════════════════════
-$('tab-outline').addEventListener('click',()=>{
-  $('tab-outline').classList.add('active'); $('tab-organize').classList.remove('active');
-  $('panel-outline').style.display='flex'; $('panel-organize').style.display='none';
-});
-$('tab-organize').addEventListener('click',()=>{
-  $('tab-organize').classList.add('active'); $('tab-outline').classList.remove('active');
-  $('panel-organize').style.display='flex'; $('panel-outline').style.display='none';
-  renderOrganize();
+document.querySelectorAll('.sidebar-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const target=tab.dataset.tab;
+    document.querySelectorAll('.sidebar-tab').forEach(t=>t.classList.toggle('active',t===tab));
+    document.querySelectorAll('[data-panel]').forEach(p=>p.style.display=p.dataset.panel===target?'flex':'none');
+    if(target==='organize') renderOrganize();
+  });
 });
 
 // ══════════════════════════════
 // VIEWS
 // ══════════════════════════════
+function setView(mode) {
+  el('section-view').style.display = mode==='section' ? 'flex' : 'none';
+  el('chapter-view').style.display = mode==='chapter' ? 'flex' : 'none';
+  el('empty-state').style.display  = mode==='empty'   ? 'flex' : 'none';
+}
+
 function showEmpty() {
-  $('section-view').style.display='none';
-  $('chapter-view').style.display='none';
-  $('empty-state').style.display='flex';
+  setView('empty');
   S.activeId=null; S.activeMode=null;
 }
 
 function loadSection(id) {
   const node=getNode(id); if(!node) return;
   S.activeId=id; S.activeMode='section';
-  $('section-view').style.display='flex';
-  $('chapter-view').style.display='none';
-  $('empty-state').style.display='none';
-  $('sv-title-input').value=node.title;
-  $('sv-editor').innerHTML=node.html||'';
+  setView('section');
+  el('sv-title-input').value=node.title;
+  el('sv-editor').innerHTML=node.html||'';
   const ch=parentCh(id);
-  $('sv-path').textContent=ch?ch.title:'—';
-  $('sv-wc').textContent=wc(node.html)+' words';
-  updateBreadcrumb(); updateStatus(); renderOutline();
-  $('sv-editor').focus();
+  el('sv-path').textContent=ch?ch.title:'—';
+  el('sv-wc').textContent=wc(node.html)+' words';
+  updateStatus(); renderOutline();
+  el('sv-editor').focus();
 }
 
 function loadChapter(id) {
   const ch=getNode(id); if(!ch||ch.type!=='chapter') return;
   S.activeId=id; S.activeMode='chapter';
-  $('section-view').style.display='none';
-  $('chapter-view').style.display='flex';
-  $('empty-state').style.display='none';
-  $('cv-title-input').value=ch.title;
-  $('cv-prose').innerHTML=ch.html||'';
+  setView('chapter');
+  el('cv-title-input').value=ch.title;
+  el('cv-prose').innerHTML=ch.html||'';
   buildChapterSections(id);
-  updateBreadcrumb(); updateStatus(); renderOutline();
+  updateStatus(); renderOutline();
+  initSectionObserver();
 }
 
 function buildChapterSections(chId) {
-  const container=$('cv-sections');
+  const container=el('cv-sections');
   const secs=sections(chId);
   container.innerHTML=secs.map(sec=>`
     <div class="cv-sec-block" data-id="${sec.id}">
@@ -884,47 +1078,50 @@ function buildChapterSections(chId) {
 }
 
 // ══════════════════════════════
-// BREADCRUMB & STATUS
+// STATUS
 // ══════════════════════════════
-function updateBreadcrumb() {
-  const el=$('bc-inner');
-  if(!S.activeId){el.textContent='—';return;}
-  const node=getNode(S.activeId);
-  if(!node){el.textContent='—';return;}
-  if(node.type==='chapter'){
-    el.innerHTML=esc(node.title);
-  } else {
-    const ch=parentCh(S.activeId);
-    el.innerHTML=`${esc(ch?ch.title:'?')}<span class="bc-sep">›</span><span class="bc-cur">${esc(node.title)}</span>`;
-  }
+function readTime(words) {
+  const mins = Math.ceil(words / 200);
+  return mins < 1 ? '' : `· ~${mins} min read`;
 }
-
 function updateStatus() {
-  $('stat-doc').textContent=wc(S.nodes.map(n=>n.html||'').join(' '));
-  if(!S.activeId) return;
-  const node=getNode(S.activeId); if(!node) return;
-  const chId=node.type==='chapter'?node.id:node.parentId;
-  const ch=getNode(chId);
-  const secs=sections(chId);
-  $('stat-ch').textContent=wc((ch?ch.html||'':'')+secs.map(s=>s.html||'').join(' '));
-  if(S.activeMode==='section') $('stat-sec').textContent=wc(node.html);
-  else $('stat-sec').textContent=wc(secs.map(s=>s.html||'').join(' '));
+  if(!S.activeId) {
+    el('stat-scope-label').textContent = 'Doc';
+    const docWords = wc(S.nodes.map(n=>n.html||'').join(' '));
+    el('stat-words').textContent = docWords;
+    el('stat-read').textContent  = readTime(docWords);
+    return;
+  }
+  const node = getNode(S.activeId); if(!node) return;
+  if(S.activeMode==='section') {
+    el('stat-scope-label').textContent = 'Section';
+    const w = wc(node.html);
+    el('stat-words').textContent = w;
+    el('stat-read').textContent  = readTime(w);
+  } else {
+    // Chapter view — sum chapter prose + all section bodies
+    el('stat-scope-label').textContent = 'Chapter';
+    const secs = sections(node.id);
+    const w = wc((node.html||'') + secs.map(s=>s.html||'').join(' '));
+    el('stat-words').textContent = w;
+    el('stat-read').textContent  = readTime(w);
+  }
 }
 
 // ══════════════════════════════
 // SECTION VIEW EVENTS
 // ══════════════════════════════
-$('sv-editor').addEventListener('input',()=>{
+el('sv-editor').addEventListener('input',()=>{
   if(S.activeId&&S.activeMode==='section'){
     const n=getNode(S.activeId);
-    if(n){n.html=$('sv-editor').innerHTML;$('sv-wc').textContent=wc(n.html)+' words';}
+    if(n){n.html=el('sv-editor').innerHTML;el('sv-wc').textContent=wc(n.html)+' words';}
   }
   updateStatus(); scheduleSave();
 });
-$('sv-title-input').addEventListener('input',e=>{
+el('sv-title-input').addEventListener('input',e=>{
   if(S.activeId&&S.activeMode==='section'){
     const n=getNode(S.activeId);
-    if(n){n.title=e.target.value;renderOutline();updateBreadcrumb();}
+    if(n){n.title=e.target.value;renderOutline();}
   }
   scheduleSave();
 });
@@ -932,46 +1129,82 @@ $('sv-title-input').addEventListener('input',e=>{
 // ══════════════════════════════
 // CHAPTER VIEW EVENTS
 // ══════════════════════════════
-$('cv-title-input').addEventListener('input',e=>{
+el('cv-title-input').addEventListener('input',e=>{
   if(S.activeId&&S.activeMode==='chapter'){
     const n=getNode(S.activeId);
-    if(n){n.title=e.target.value;renderOutline();updateBreadcrumb();}
+    if(n){n.title=e.target.value;renderOutline();}
   }
   scheduleSave();
 });
-$('cv-prose').addEventListener('input',()=>{
+el('cv-prose').addEventListener('input',()=>{
   if(S.activeId&&S.activeMode==='chapter'){
-    const n=getNode(S.activeId); if(n) n.html=$('cv-prose').innerHTML;
+    const n=getNode(S.activeId); if(n) n.html=el('cv-prose').innerHTML;
   }
   updateStatus(); scheduleSave();
 });
-$('cv-add-sec-btn').addEventListener('click',()=>{
+el('cv-add-sec-btn').addEventListener('click',()=>{
   if(S.activeId&&S.activeMode==='chapter') openSecModal(S.activeId);
 });
 
 // ══════════════════════════════
-// FORMAT BAR
+// FLOATING SELECTION TOOLBAR
 // ══════════════════════════════
 function fmt(cmd,val){
   const f=document.activeElement;
-  if(f&&f.isContentEditable) f.focus(); else $('sv-editor').focus();
+  if(f&&f.isContentEditable) f.focus(); else el('sv-editor').focus();
   document.execCommand(cmd,false,val);
 }
-$('fmt-bold').addEventListener('click',    ()=>fmt('bold'));
-$('fmt-italic').addEventListener('click',  ()=>fmt('italic'));
-$('fmt-underline').addEventListener('click',()=>fmt('underline'));
-$('fmt-h2').addEventListener('click',      ()=>fmt('formatBlock','h2'));
-$('fmt-h3').addEventListener('click',      ()=>fmt('formatBlock','h3'));
-$('fmt-p').addEventListener('click',       ()=>fmt('formatBlock','p'));
-$('fmt-quote').addEventListener('click',   ()=>fmt('formatBlock','blockquote'));
+el('fmt-bold').addEventListener('click',    ()=>fmt('bold'));
+el('fmt-italic').addEventListener('click',  ()=>fmt('italic'));
+el('fmt-underline').addEventListener('click',()=>fmt('underline'));
+el('fmt-h2').addEventListener('click',      ()=>fmt('formatBlock','h2'));
+el('fmt-h3').addEventListener('click',      ()=>fmt('formatBlock','h3'));
+el('fmt-p').addEventListener('click',       ()=>fmt('formatBlock','p'));
+el('fmt-quote').addEventListener('click',   ()=>fmt('formatBlock','blockquote'));
+
 function syncFmtBar(){
-  $('fmt-bold').classList.toggle('active',document.queryCommandState('bold'));
-  $('fmt-italic').classList.toggle('active',document.queryCommandState('italic'));
-  $('fmt-underline').classList.toggle('active',document.queryCommandState('underline'));
+  el('fmt-bold').classList.toggle('active',document.queryCommandState('bold'));
+  el('fmt-italic').classList.toggle('active',document.queryCommandState('italic'));
+  el('fmt-underline').classList.toggle('active',document.queryCommandState('underline'));
 }
-document.addEventListener('keyup',syncFmtBar);
-document.addEventListener('mouseup',syncFmtBar);
-document.addEventListener('selectionchange',syncFmtBar);
+
+let _toolbarHideTimer = null;
+function positionToolbar() {
+  const sel = window.getSelection();
+  const toolbar = el('selection-toolbar');
+  if(!sel || sel.isCollapsed || !sel.rangeCount) {
+    toolbar.classList.remove('visible'); return;
+  }
+  // Only show when selection is inside a contenteditable writing area
+  const anchor = sel.anchorNode;
+  const inEditor = anchor && anchor.parentElement &&
+    anchor.parentElement.closest('[contenteditable="true"]');
+  if(!inEditor) { toolbar.classList.remove('visible'); return; }
+
+  const range = sel.getRangeAt(0);
+  const rect  = range.getBoundingClientRect();
+  if(!rect.width) { toolbar.classList.remove('visible'); return; }
+
+  const tbW = toolbar.offsetWidth || 220;
+  const GAP = 8;
+  let left = rect.left + (rect.width / 2) - (tbW / 2);
+  left = Math.max(8, Math.min(left, window.innerWidth - tbW - 8));
+  const top = rect.top - toolbar.offsetHeight - GAP;
+
+  toolbar.style.left = left + 'px';
+  toolbar.style.top  = (top < 8 ? rect.bottom + GAP : top) + 'px';
+  toolbar.classList.add('visible');
+  syncFmtBar();
+}
+
+document.addEventListener('selectionchange', ()=>{
+  clearTimeout(_toolbarHideTimer);
+  // Small delay so click-on-toolbar-btn doesn't flicker the toolbar away
+  _toolbarHideTimer = setTimeout(positionToolbar, 60);
+});
+document.addEventListener('keyup', syncFmtBar);
+document.addEventListener('mouseup', ()=>{ clearTimeout(_toolbarHideTimer); positionToolbar(); });
+
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='b'){e.preventDefault();fmt('bold');}
   if((e.ctrlKey||e.metaKey)&&e.key==='i'){e.preventDefault();fmt('italic');}
@@ -985,45 +1218,45 @@ document.addEventListener('keydown',e=>{
 const openModal  = id => document.getElementById(id).classList.add('visible');
 const closeModal = id => document.getElementById(id).classList.remove('visible');
 
-function openChModal(){$('mc-input').value='';openModal('modal-chapter');setTimeout(()=>$('mc-input').focus(),80);}
-$('add-chapter-btn').addEventListener('click',openChModal);
-$('empty-add-ch').addEventListener('click',openChModal);
-$('mc-cancel').addEventListener('click',()=>closeModal('modal-chapter'));
-$('mc-ok').addEventListener('click',()=>{
-  const v=$('mc-input').value.trim(); if(!v) return;
+function openChModal(){el('mc-input').value='';openModal('modal-chapter');setTimeout(()=>el('mc-input').focus(),80);}
+el('add-chapter-btn').addEventListener('click',openChModal);
+el('empty-add-ch').addEventListener('click',openChModal);
+el('mc-cancel').addEventListener('click',()=>closeModal('modal-chapter'));
+el('mc-ok').addEventListener('click',()=>{
+  const v=el('mc-input').value.trim(); if(!v) return;
   const ch=addChapter(v); closeModal('modal-chapter');
   renderOutline(); renderOrganize(); flushAll(); loadChapter(ch.id); toast('Chapter added');
 });
-$('mc-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('mc-ok').click();if(e.key==='Escape')closeModal('modal-chapter');});
+el('mc-input').addEventListener('keydown',e=>{if(e.key==='Enter')el('mc-ok').click();if(e.key==='Escape')closeModal('modal-chapter');});
 
 function openSecModal(chId){
-  pendingSecParent=chId; $('ms-input').value=''; openModal('modal-section');
-  setTimeout(()=>$('ms-input').focus(),80);
+  pendingSecParent=chId; el('ms-input').value=''; openModal('modal-section');
+  setTimeout(()=>el('ms-input').focus(),80);
 }
-$('ms-cancel').addEventListener('click',()=>closeModal('modal-section'));
-$('ms-ok').addEventListener('click',()=>{
-  const v=$('ms-input').value.trim(); if(!v||!pendingSecParent) return;
+el('ms-cancel').addEventListener('click',()=>closeModal('modal-section'));
+el('ms-ok').addEventListener('click',()=>{
+  const v=el('ms-input').value.trim(); if(!v||!pendingSecParent) return;
   const sec=addSection(pendingSecParent,v); closeModal('modal-section');
   renderOutline(); renderOrganize(); flushAll(); loadSection(sec.id); toast('Section added');
 });
-$('ms-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('ms-ok').click();if(e.key==='Escape')closeModal('modal-section');});
+el('ms-input').addEventListener('keydown',e=>{if(e.key==='Enter')el('ms-ok').click();if(e.key==='Escape')closeModal('modal-section');});
 
-$('export-json-btn').addEventListener('click',()=>{
+el('export-json-btn').addEventListener('click',()=>{
   const suggested=(S.docTitle||'document').replace(/\s+/g,'-').toLowerCase();
-  $('me-input').value=suggested; openModal('modal-export');
-  setTimeout(()=>{$('me-input').focus();$('me-input').select();},80);
+  el('me-input').value=suggested; openModal('modal-export');
+  setTimeout(()=>{el('me-input').focus();el('me-input').select();},80);
 });
-$('me-cancel').addEventListener('click',()=>closeModal('modal-export'));
-$('me-ok').addEventListener('click',()=>{
+el('me-cancel').addEventListener('click',()=>closeModal('modal-export'));
+el('me-ok').addEventListener('click',()=>{
   flushAll();
-  const raw=$('me-input').value.trim()||'document';
+  const raw=el('me-input').value.trim()||'document';
   const fname=raw.endsWith('.json')?raw:raw+'.json';
   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=fname; a.click();
   URL.revokeObjectURL(url); closeModal('modal-export'); toast('Exported '+fname);
 });
-$('me-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('me-ok').click();if(e.key==='Escape')closeModal('modal-export');});
+el('me-input').addEventListener('keydown',e=>{if(e.key==='Enter')el('me-ok').click();if(e.key==='Escape')closeModal('modal-export');});
 ['modal-chapter','modal-section','modal-export'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(id); });
 });
@@ -1031,7 +1264,7 @@ $('me-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('me-ok').click
 // ══════════════════════════════
 // PDF EXPORT
 // ══════════════════════════════
-$('export-pdf-btn').addEventListener('click',()=>{
+el('export-pdf-btn').addEventListener('click',()=>{
   if(!S.activeId){toast('Select a chapter or section first');return;}
   flushAll();
   const node=getNode(S.activeId);
@@ -1058,41 +1291,220 @@ $('export-pdf-btn').addEventListener('click',()=>{
   p{margin:0 0 9pt}blockquote{border-left:3px solid #ccc;margin:14pt 0;padding-left:14pt;color:#555;font-style:italic}
   .ch-prose{margin-bottom:28pt}.sec-block{margin-bottom:28pt;page-break-inside:avoid}
   </style></head><body><h1>${esc(title)}</h1>${bodyHtml}</body></html>`;
-  const pw=window.open('','_blank','width=820,height=900');
-  if(pw){pw.document.write(html);pw.document.close();pw.addEventListener('load',()=>{pw.focus();pw.print();});}
-  else toast('Allow popups to export PDF');
+  // Use a hidden iframe + Blob URL to avoid popup blocker entirely
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  let iframe = el('pdf-print-frame');
+  if(!iframe){
+    iframe = document.createElement('iframe');
+    iframe.id = 'pdf-print-frame';
+    iframe.style.cssText = 'display:none;position:fixed;';
+    document.body.appendChild(iframe);
+  }
+  if(iframe._blobUrl) URL.revokeObjectURL(iframe._blobUrl);
+  iframe._blobUrl = url;
+  iframe.src = url;
+  iframe.onload = ()=>{ iframe.contentWindow.focus(); iframe.contentWindow.print(); };
 });
 
 // ══════════════════════════════
 // JSON IMPORT
 // ══════════════════════════════
-$('import-json-btn').addEventListener('click',()=>$('import-file-input').click());
-$('import-file-input').addEventListener('change',e=>{
+let pendingImportData = null;
+el('import-json-btn').addEventListener('click',()=>el('import-file-input').click());
+el('import-file-input').addEventListener('change',e=>{
   const file=e.target.files[0]; if(!file) return;
   const r=new FileReader();
   r.onload=ev=>{
     try{
       const imp=JSON.parse(ev.target.result);
       if(!imp.nodes) throw new Error();
-      if(!confirm('Replace current document with imported data?')) return;
-      S=imp; persist(); init(); toast('Document imported');
+      pendingImportData=imp;
+      openModal('modal-import-confirm');
     }catch{toast('Import failed: invalid file');}
   };
   r.readAsText(file); e.target.value='';
 });
+el('mic-cancel').addEventListener('click',()=>{ pendingImportData=null; closeModal('modal-import-confirm'); });
+el('mic-ok').addEventListener('click',()=>{
+  if(!pendingImportData) return;
+  S=pendingImportData; pendingImportData=null;
+  closeModal('modal-import-confirm');
+  persist(); init(); toast('Document imported');
+});
+document.getElementById('modal-import-confirm').addEventListener('click',e=>{
+  if(e.target===e.currentTarget){ pendingImportData=null; closeModal('modal-import-confirm'); }
+});
 
 // ══════════════════════════════
-// SIDEBAR & DOC TITLE
+// SIDEBAR (responsive-aware)
 // ══════════════════════════════
-$('toggle-sidebar').addEventListener('click',()=>$('sidebar').classList.toggle('collapsed'));
-$('doc-title-input').addEventListener('input',e=>{S.docTitle=e.target.value;scheduleSave();});
+function isMobile() { return window.innerWidth < 600; }
+
+function openSidebar() {
+  el('sidebar').classList.remove('collapsed');
+  if(isMobile()) document.body.classList.add('sidebar-open');
+}
+function closeSidebar() {
+  el('sidebar').classList.add('collapsed');
+  document.body.classList.remove('sidebar-open');
+}
+function toggleSidebar() {
+  el('sidebar').classList.contains('collapsed') ? openSidebar() : closeSidebar();
+}
+
+el('toggle-sidebar').addEventListener('click', toggleSidebar);
+el('sidebar-backdrop').addEventListener('click', closeSidebar);
+el('doc-title-input').addEventListener('input',e=>{S.docTitle=e.target.value;scheduleSave();});
+
+// ── File-ops popover (⋯ in sidebar footer)
+let _fileOpsOpen = false;
+el('file-ops-btn').addEventListener('click', e=>{
+  e.stopPropagation();
+  const menu = el('file-ops-menu');
+  const btn  = el('file-ops-btn');
+  _fileOpsOpen = !_fileOpsOpen;
+  if(_fileOpsOpen) {
+    const r = btn.getBoundingClientRect();
+    menu.style.left   = (r.left) + 'px';
+    menu.style.bottom = (window.innerHeight - r.top + 4) + 'px';
+    menu.style.top    = 'auto';
+    menu.style.display = 'block';
+  } else {
+    menu.style.display = 'none';
+  }
+});
+document.addEventListener('click', ()=>{
+  if(_fileOpsOpen){ el('file-ops-menu').style.display='none'; _fileOpsOpen=false; }
+});
+
+// Detect touch device — shows overflow btn persistently, hides hover-only controls
+if(window.matchMedia('(hover: none)').matches) document.body.classList.add('touch-device');
+
+// ══════════════════════════════
+// OVERFLOW MENU
+// ══════════════════════════════
+let _overflowMenu = null;
+
+function closeOverflowMenu() {
+  if(_overflowMenu) { _overflowMenu.remove(); _overflowMenu=null; }
+}
+
+function openOverflowMenu(nodeId, nodeType, anchorEl) {
+  closeOverflowMenu();
+  const node = getNode(nodeId); if(!node) return;
+  const isChapter = nodeType==='chapter';
+
+  const menu = document.createElement('div');
+  menu.className = 'overflow-menu';
+  menu.innerHTML = `
+    ${isChapter ? `<button class="overflow-menu-item" data-action="add-sec" data-id="${nodeId}">＋ Add section</button>
+    <div class="overflow-menu-sep"></div>` : ''}
+    <button class="overflow-menu-item" data-action="rename" data-id="${nodeId}">✎ Rename</button>
+    ${!isChapter ? `<button class="overflow-menu-item" data-action="toggle-vis" data-id="${nodeId}">${node.showTitle===false?'◉ Show title':'◌ Hide title'}</button>` : ''}
+    <div class="overflow-menu-sep"></div>
+    <button class="overflow-menu-item danger" data-action="delete" data-id="${nodeId}" data-type="${nodeType}">✕ Delete</button>
+  `;
+
+  document.body.appendChild(menu);
+  _overflowMenu = menu;
+
+  // Position below the anchor button
+  const rect = anchorEl.getBoundingClientRect();
+  const mW = 160;
+  let left = rect.right - mW;
+  left = Math.max(8, Math.min(left, window.innerWidth - mW - 8));
+  menu.style.left = left + 'px';
+  menu.style.top  = (rect.bottom + 4) + 'px';
+
+  menu.addEventListener('click', e=>{
+    const item = e.target.closest('.overflow-menu-item');
+    if(!item) return;
+    const action = item.dataset.action;
+    const id     = item.dataset.id;
+    closeOverflowMenu();
+
+    if(action==='add-sec')    { openSecModal(id); }
+    else if(action==='rename') { inlineRename(id); }
+    else if(action==='toggle-vis') {
+      const sec=getNode(id); if(!sec) return;
+      sec.showTitle = sec.showTitle===false ? true : false;
+      scheduleSave(); renderOutline();
+      if(S.activeMode==='chapter'&&S.activeId===sec.parentId){
+        const bl=document.querySelector(`.cv-sec-block[data-id="${sec.id}"]`);
+        if(bl){const ti=bl.querySelector('.cv-sec-title-inp');if(ti)ti.classList.toggle('title-hidden',sec.showTitle===false);}
+      }
+    }
+    else if(action==='delete') {
+      const n=getNode(id); if(!n) return;
+      const label=n.type==='chapter'?'chapter and all its sections':'section';
+      if(!confirm(`Delete this ${label}? This cannot be undone.`)) return;
+      flushAll(); deleteNode(id);
+      renderOutline(); renderOrganize(); updateStatus();
+      if(!S.activeId) showEmpty();
+      else if(S.activeMode==='chapter'){if(getNode(S.activeId))loadChapter(S.activeId);else showEmpty();}
+      else{if(getNode(S.activeId))loadSection(S.activeId);else showEmpty();}
+    }
+  });
+}
+
+// Close menu on outside click or scroll
+document.addEventListener('click', e=>{
+  if(_overflowMenu && !_overflowMenu.contains(e.target) && !e.target.closest('.overflow-btn'))
+    closeOverflowMenu();
+});
+document.addEventListener('scroll', closeOverflowMenu, true);
+
+// ══════════════════════════════
+// FOCUS MODE
+// ══════════════════════════════
+function toggleFocusMode() {
+  document.body.classList.toggle('focus-mode');
+}
+el('focus-exit').addEventListener('click', ()=>document.body.classList.remove('focus-mode'));
+document.addEventListener('keydown', e=>{
+  // Cmd+. or Escape (when not in a modal/input) toggles focus mode
+  if((e.metaKey||e.ctrlKey) && e.key==='.') { e.preventDefault(); toggleFocusMode(); return; }
+  if(e.key==='Escape' && document.body.classList.contains('focus-mode')) {
+    document.body.classList.remove('focus-mode');
+  }
+});
+
+// ══════════════════════════════
+// ACTIVE SECTION OBSERVER
+// Syncs sidebar highlight to whichever cv-sec-block is most visible
+// while in chapter view with multiple sections.
+// ══════════════════════════════
+let _sectionObserver = null;
+
+function initSectionObserver() {
+  if(_sectionObserver) _sectionObserver.disconnect();
+  if(S.activeMode !== 'chapter') return;
+  const blocks = document.querySelectorAll('.cv-sec-block');
+  if(blocks.length < 2) return; // single section — no sync needed
+
+  const ratios = new Map();
+  _sectionObserver = new IntersectionObserver(entries=>{
+    entries.forEach(entry=>ratios.set(entry.target.dataset.id, entry.intersectionRatio));
+    // Find the section block with the highest visibility ratio
+    let topId=null, topRatio=-1;
+    ratios.forEach((ratio, id)=>{ if(ratio>topRatio){topRatio=ratio;topId=id;} });
+    if(!topId) return;
+    // Apply active class to the matching sidebar row only
+    el('outline-tree').querySelectorAll('.outline-row[data-type="section"]').forEach(row=>{
+      row.classList.toggle('active', row.dataset.id===topId);
+    });
+  }, { root: el('canvas-wrap'), threshold: [0, 0.25, 0.5, 0.75, 1] });
+
+  blocks.forEach(b=>_sectionObserver.observe(b));
+}
 
 // ══════════════════════════════
 // INIT
 // ══════════════════════════════
 function init() {
   loadState();
-  $('doc-title-input').value=S.docTitle||'';
+  el('doc-title-input').value=S.docTitle||'';
   renderOutline();
   if(S.activeId&&getNode(S.activeId)){
     if(S.activeMode==='section') loadSection(S.activeId);
@@ -1103,6 +1515,7 @@ function init() {
   updateStatus();
 }
 
+initOutlineEvents(); // attach once — delegation survives renderOutline() re-renders
 init();
 </script>
 </body>
