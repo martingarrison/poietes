@@ -325,6 +325,8 @@ body.sidebar-open #sidebar-backdrop { display: block; }
   color: var(--text); font-family: var(--font-prose); font-size: 17px; line-height: 1.78;
   caret-color: var(--accent);
 }
+#sv-editor p, #cv-prose p, .cv-sec-body p { margin: 0 0 1.1em; }
+#sv-editor p:last-child, #cv-prose p:last-child, .cv-sec-body p:last-child { margin-bottom: 0; }
 #sv-editor:empty::before { content: attr(data-placeholder); color: var(--text-dim); pointer-events: none; }
 
 #chapter-view { width: 100%; max-width: 680px; display: none; flex-direction: column; }
@@ -484,6 +486,7 @@ body.focus-mode #focus-exit { opacity: 1; pointer-events: all; }
       <div style="flex:1"></div>
       <button class="sidebar-icon-btn" id="file-ops-btn" title="File operations">⋯</button>
       <input type="file" id="import-file-input" accept=".json" style="display:none">
+      <input type="file" id="import-md-input" accept=".md,.txt" style="display:none">
     </div>
   </aside>
 
@@ -530,6 +533,9 @@ body.focus-mode #focus-exit { opacity: 1; pointer-events: all; }
 <div id="file-ops-menu" class="overflow-menu" style="display:none">
   <button class="overflow-menu-item" id="export-json-btn">↓ Export JSON</button>
   <button class="overflow-menu-item" id="import-json-btn">↑ Import JSON</button>
+  <div class="overflow-menu-sep"></div>
+  <button class="overflow-menu-item" id="export-md-btn">↓ Export Chapter as MD</button>
+  <button class="overflow-menu-item" id="import-md-btn">↑ Import Chapter from MD</button>
 </div>
 
 <!-- Floating selection toolbar -->
@@ -570,7 +576,7 @@ body.focus-mode #focus-exit { opacity: 1; pointer-events: all; }
 </div>
 <div class="modal-overlay" id="modal-export">
   <div class="modal">
-    <h3>Export JSON</h3><label>File name</label>
+    <h3 id="me-title">Export JSON</h3><label>File name</label>
     <input type="text" id="me-input" placeholder="my-document">
     <div class="modal-actions">
       <button class="btn-ghost" id="me-cancel">Cancel</button>
@@ -585,6 +591,17 @@ body.focus-mode #focus-exit { opacity: 1; pointer-events: all; }
     <div class="modal-actions">
       <button class="btn-ghost" id="mic-cancel">Cancel</button>
       <button class="btn-primary" id="mic-ok">Replace &amp; Import</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-import-md-confirm">
+  <div class="modal">
+    <h3>Replace chapter?</h3>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:4px;">This will replace <strong id="mimd-chapter-name" style="color:var(--text)"></strong> and all its sections with the imported markdown file. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="mimd-cancel">Cancel</button>
+      <button class="btn-primary" id="mimd-ok">Replace &amp; Import</button>
     </div>
   </div>
 </div>
@@ -1248,20 +1265,41 @@ el('ms-ok').addEventListener('click',()=>{
 });
 el('ms-input').addEventListener('keydown',e=>{if(e.key==='Enter')el('ms-ok').click();if(e.key==='Escape')closeModal('modal-section');});
 
+// ══════════════════════════════
+// EXPORT MODAL (shared by JSON and MD)
+// ══════════════════════════════
+let _exportMode = 'json'; // 'json' or 'md'
+let _exportMdChId = null;
+
 el('export-json-btn').addEventListener('click',()=>{
-  const suggested=(S.docTitle||'document').replace(/\s+/g,'-').toLowerCase();
-  el('me-input').value=suggested; openModal('modal-export');
-  setTimeout(()=>{el('me-input').focus();el('me-input').select();},80);
+  _exportMode = 'json'; _exportMdChId = null;
+  el('me-title').textContent = 'Export JSON';
+  const suggested = (S.docTitle||'document').replace(/\s+/g,'-').toLowerCase();
+  el('me-input').value = suggested;
+  openModal('modal-export');
+  setTimeout(()=>{ el('me-input').focus(); el('me-input').select(); }, 80);
 });
 el('me-cancel').addEventListener('click',()=>closeModal('modal-export'));
 el('me-ok').addEventListener('click',()=>{
   flushAll();
-  const raw=el('me-input').value.trim()||'document';
-  const fname=raw.endsWith('.json')?raw:raw+'.json';
-  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=fname; a.click();
-  URL.revokeObjectURL(url); closeModal('modal-export'); toast('Exported '+fname);
+  const raw = el('me-input').value.trim() || 'document';
+  if(_exportMode === 'json') {
+    const fname = raw.endsWith('.json') ? raw : raw + '.json';
+    const blob  = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
+    const url   = URL.createObjectURL(blob);
+    const a     = document.createElement('a'); a.href=url; a.download=fname; a.click();
+    URL.revokeObjectURL(url);
+    closeModal('modal-export'); toast('Exported ' + fname);
+  } else {
+    const ch = getNode(_exportMdChId); if(!ch){ closeModal('modal-export'); return; }
+    const fname = raw.endsWith('.md') ? raw : raw + '.md';
+    const md    = chapterToMd(ch);
+    const blob  = new Blob([md], {type:'text/markdown'});
+    const url   = URL.createObjectURL(blob);
+    const a     = document.createElement('a'); a.href=url; a.download=fname; a.click();
+    URL.revokeObjectURL(url);
+    closeModal('modal-export'); toast('Exported ' + fname);
+  }
 });
 el('me-input').addEventListener('keydown',e=>{if(e.key==='Enter')el('me-ok').click();if(e.key==='Escape')closeModal('modal-export');});
 ['modal-chapter','modal-section','modal-export'].forEach(id=>{
@@ -1341,6 +1379,208 @@ el('mic-ok').addEventListener('click',()=>{
 });
 document.getElementById('modal-import-confirm').addEventListener('click',e=>{
   if(e.target===e.currentTarget){ pendingImportData=null; closeModal('modal-import-confirm'); }
+});
+
+// ══════════════════════════════
+// HTML ↔ MARKDOWN CONVERSION
+// ══════════════════════════════
+
+function htmlToMd(html) {
+  if(!html) return '';
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html;
+
+  function nodeToMd(node) {
+    if(node.nodeType === Node.TEXT_NODE) return node.textContent;
+    if(node.nodeType !== Node.ELEMENT_NODE) return '';
+    const tag = node.tagName.toLowerCase();
+    const inner = () => Array.from(node.childNodes).map(nodeToMd).join('');
+    if(tag === 'br')   return '\n';
+    if(tag === 'p')    return inner().trim() + '\n\n';
+    if(tag === 'div')  return inner().trim() + '\n\n';
+    if(tag === 'h2')   return '## ' + inner().trim() + '\n\n';
+    if(tag === 'h3')   return '### ' + inner().trim() + '\n\n';
+    if(tag === 'blockquote') {
+      return inner().trim().split('\n').map(l => '> ' + l).join('\n') + '\n\n';
+    }
+    if(tag === 'strong' || tag === 'b') { const t=inner().trim(); return t ? '**'+t+'**' : ''; }
+    if(tag === 'em'    || tag === 'i')  { const t=inner().trim(); return t ? '*'+t+'*'   : ''; }
+    if(tag === 'u')    return inner();
+    if(tag === 'ul')   return inner() + '\n';
+    if(tag === 'ol')   return inner() + '\n';
+    if(tag === 'li')   return '- ' + inner().trim() + '\n';
+    if(tag === 'span') return inner();
+    return inner();
+  }
+
+  let md = Array.from(wrap.childNodes).map(nodeToMd).join('');
+  md = md.replace(/\n{3,}/g, '\n\n').trim();
+  return md;
+}
+
+// Convert markdown to HTML. Each blank-line-separated block becomes a <p>,
+// and a spacer <p></p> is inserted between blocks to preserve the visual gap.
+function mdToHtml(md) {
+  if(!md) return '';
+  const rawBlocks = md.split(/\n\n+/);
+  const htmlParts = rawBlocks.map(block => {
+    const line = block.trim();
+    if(!line) return '';
+    if(line.startsWith('### ')) return '<h3>' + inlineMd(line.slice(4).trim()) + '</h3>';
+    if(line.startsWith('## '))  return '<h2>' + inlineMd(line.slice(3).trim()) + '</h2>';
+    if(line.startsWith('> ')) {
+      const inner = line.split('\n').map(l => l.replace(/^>\s?/,'')).join('\n');
+      return '<blockquote>' + inlineMd(inner) + '</blockquote>';
+    }
+    if(line.split('\n').every(l => /^- /.test(l.trim()))) {
+      const items = line.split('\n')
+        .map(l => '<li>' + inlineMd(l.replace(/^- /,'').trim()) + '</li>').join('');
+      return '<ul>' + items + '</ul>';
+    }
+    const pContent = line.split('\n').map(l => inlineMd(l)).join(' ');
+    return '<p>' + pContent + '</p>';
+  }).filter(Boolean);
+  // Insert a spacer paragraph between every pair of blocks to represent the blank line
+  return htmlParts.join('<p></p>');
+}
+
+function inlineMd(text) {
+  return text
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>');
+}
+
+function chapterToMd(ch) {
+  const secs = sections(ch.id);
+  const lines = [];
+  lines.push('# ' + ch.title);
+  lines.push('');
+  if(ch.html) { lines.push(htmlToMd(ch.html)); lines.push(''); }
+  secs.forEach(sec => {
+    lines.push('## ' + sec.title);
+    lines.push('');
+    if(sec.html) { lines.push(htmlToMd(sec.html)); lines.push(''); }
+  });
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+}
+
+// ══════════════════════════════
+// EXPORT CHAPTER AS MARKDOWN
+// ══════════════════════════════
+el('export-md-btn').addEventListener('click',()=>{
+  if(!S.activeId){ toast('Select a chapter first'); return; }
+  flushAll();
+  let chId = S.activeId;
+  if(S.activeMode === 'section') {
+    const sec = getNode(S.activeId);
+    chId = sec ? sec.parentId : null;
+  }
+  if(!chId){ toast('Select a chapter first'); return; }
+  const ch = getNode(chId);
+  if(!ch || ch.type !== 'chapter'){ toast('Select a chapter first'); return; }
+
+  _exportMode = 'md'; _exportMdChId = chId;
+  el('me-title').textContent = 'Export Chapter as MD';
+  const suggested = ch.title.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-_]/g,'').toLowerCase();
+  el('me-input').value = suggested || 'chapter';
+  openModal('modal-export');
+  setTimeout(()=>{ el('me-input').focus(); el('me-input').select(); }, 80);
+});
+
+// ══════════════════════════════
+// IMPORT CHAPTER FROM MARKDOWN
+// ══════════════════════════════
+let pendingMdImport = null;
+
+el('import-md-btn').addEventListener('click',()=>{
+  if(!S.activeId){ toast('Select a chapter first'); return; }
+  flushAll();
+  let chId = S.activeId;
+  if(S.activeMode === 'section') {
+    const sec = getNode(S.activeId);
+    chId = sec ? sec.parentId : null;
+  }
+  if(!chId || !getNode(chId)){ toast('Select a chapter first'); return; }
+  el('import-md-input').dataset.targetChId = chId;
+  el('import-md-input').click();
+});
+
+el('import-md-input').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const targetChId = el('import-md-input').dataset.targetChId;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const parsed = parseMdChapter(ev.target.result);
+      pendingMdImport = { targetChId, parsed };
+      const ch = getNode(targetChId);
+      el('mimd-chapter-name').textContent = ch ? '"' + ch.title + '"' : 'this chapter';
+      openModal('modal-import-md-confirm');
+    } catch(err) {
+      toast('Import failed: could not parse file');
+    }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+});
+
+function parseMdChapter(md) {
+  const lines = md.split('\n');
+  const result = { chapterTitle: null, chapterHtml: '', sections: [] };
+  let currentSection = null;
+  let bodyLines = [];
+
+  function flushBody(target) {
+    const text = bodyLines.join('\n').trim();
+    if(target === 'chapter') result.chapterHtml = text ? mdToHtml(text) : '';
+    else if(currentSection)  currentSection.html = text ? mdToHtml(text) : '';
+    bodyLines = [];
+  }
+
+  for(let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if(line.startsWith('# ') && result.chapterTitle === null) {
+      result.chapterTitle = line.slice(2).trim(); continue;
+    }
+    if(line.startsWith('## ')) {
+      if(currentSection === null) flushBody('chapter');
+      else flushBody('section');
+      currentSection = { title: line.slice(3).trim(), html: '' };
+      result.sections.push(currentSection); continue;
+    }
+    bodyLines.push(line);
+  }
+  if(currentSection === null) flushBody('chapter');
+  else flushBody('section');
+  return result;
+}
+
+el('mimd-cancel').addEventListener('click',()=>{ pendingMdImport=null; closeModal('modal-import-md-confirm'); });
+el('mimd-ok').addEventListener('click',()=>{
+  if(!pendingMdImport) return;
+  const { targetChId, parsed } = pendingMdImport;
+  pendingMdImport = null;
+  closeModal('modal-import-md-confirm');
+  const ch = getNode(targetChId);
+  if(!ch){ toast('Chapter not found'); return; }
+  if(parsed.chapterTitle) ch.title = parsed.chapterTitle;
+  ch.html = parsed.chapterHtml || '';
+  S.nodes = S.nodes.filter(n => !(n.type==='section' && n.parentId===targetChId));
+  const chIdx = S.nodes.indexOf(ch);
+  const newSections = parsed.sections.map(s => ({
+    id: uid(), type:'section', title: s.title,
+    parentId: targetChId, html: s.html || '', showTitle: true
+  }));
+  S.nodes.splice(chIdx+1, 0, ...newSections);
+  S.activeId = targetChId; S.activeMode = 'chapter';
+  persist(); renderOutline(); renderOrganize();
+  loadChapter(targetChId);
+  toast('Chapter imported from markdown');
+});
+document.getElementById('modal-import-md-confirm').addEventListener('click',e=>{
+  if(e.target===e.currentTarget){ pendingMdImport=null; closeModal('modal-import-md-confirm'); }
 });
 
 // ══════════════════════════════
